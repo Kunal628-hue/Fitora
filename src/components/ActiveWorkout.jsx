@@ -124,7 +124,9 @@ export default function ActiveWorkout({ routine, onFinishWorkout }) {
                       border: '1px solid var(--glass-border)'
                     }}
                   >
-                    <span style={{ fontSize: '1.2rem', color: isChecked ? 'var(--text-muted)' : 'var(--accent-red)' }}>🏋️</span>
+                    <span style={{ display: 'flex', alignItems: 'center', color: isChecked ? 'var(--text-muted)' : 'var(--accent-red)' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20.5 11H19V7h-2v4H7V7H5v4H3.5C2.67 11 2 11.67 2 12.5S2.67 14 3.5 14H5v4h2v-4h10v4h2v-4h1.5c.83 0 1.5-.67 1.5-1.5S21.33 11 20.5 11z"/></svg>
+                    </span>
                   </div>
                   <div>
                     <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: isChecked ? 'var(--text-secondary)' : '#ffffff' }}>
@@ -221,8 +223,8 @@ export default function ActiveWorkout({ routine, onFinishWorkout }) {
               }}
             />
             {/* Lightning bolt symbol */}
-            <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 0 10px rgba(255, 0, 0, 0.6))', display: 'block', marginBottom: '0.5rem', color: 'var(--accent-red)' }}>
-              ⚡
+            <span style={{ filter: 'drop-shadow(0 0 10px rgba(255, 0, 0, 0.6))', display: 'block', marginBottom: '0.5rem', color: 'var(--accent-red)' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
             </span>
             <h2 style={{ fontSize: '1.8rem', fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '0.05em' }}>
               Zero Excuses

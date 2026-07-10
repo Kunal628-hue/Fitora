@@ -4,8 +4,9 @@ import { WORKOUT_ROUTINES } from '../data/workoutData';
 /**
  * RoutineBrowser - Weekly routine schedule browser matching Design 2.
  */
-export default function RoutineBrowser({ selectedDayIndex, onSelectDay, onStartWorkout }) {
-  const currentRoutine = WORKOUT_ROUTINES[selectedDayIndex] || WORKOUT_ROUTINES[0];
+export default function RoutineBrowser({ weeklyWorkoutPlan, selectedDayIndex, onSelectDay, onStartWorkout }) {
+  const routines = weeklyWorkoutPlan && weeklyWorkoutPlan.length > 0 ? weeklyWorkoutPlan : WORKOUT_ROUTINES;
+  const currentRoutine = routines[selectedDayIndex] || routines[0];
 
   return (
     <div className="step-container" style={{ margin: '1rem 0' }}>
@@ -28,7 +29,7 @@ export default function RoutineBrowser({ selectedDayIndex, onSelectDay, onStartW
           marginBottom: '2.5rem' 
         }}
       >
-        {WORKOUT_ROUTINES.map((routine, idx) => {
+        {routines.map((routine, idx) => {
           const isActive = selectedDayIndex === idx;
           return (
             <button
@@ -133,7 +134,9 @@ export default function RoutineBrowser({ selectedDayIndex, onSelectDay, onStartW
                     border: '1px solid var(--glass-border)'
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem', transform: 'rotate(-45deg)', display: 'inline-block' }}>🏋️</span>
+                   <span style={{ transform: 'rotate(-45deg)', display: 'inline-flex', alignItems: 'center' }}>
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ color: 'var(--accent-red)' }}><path d="M20.5 11H19V7h-2v4H7V7H5v4H3.5C2.67 11 2 11.67 2 12.5S2.67 14 3.5 14H5v4h2v-4h10v4h2v-4h1.5c.83 0 1.5-.67 1.5-1.5S21.33 11 20.5 11z"/></svg>
+                   </span>
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#ffffff' }}>{ex.name}</h3>

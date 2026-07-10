@@ -168,29 +168,15 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onLogMeal, onVi
         </p>
 
         {/* Buttons */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex' }}>
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ minHeight: '44px', border: '1px solid var(--glass-border)', background: 'transparent' }}
+            style={{ width: '100%', minHeight: '44px', border: '1px solid var(--glass-border)', background: 'transparent' }}
             onClick={onViewDetails}
             id="next-meal-details-btn"
           >
             VIEW DETAILS
-          </button>
-          <button
-            type="button"
-            className={`btn ${isLogged ? 'btn-secondary' : 'btn-primary'}`}
-            style={{ 
-              minHeight: '44px', 
-              background: isLogged ? 'rgba(255, 255, 255, 0.05)' : 'var(--accent-danger)', // Design 1 Red style
-              color: isLogged ? 'var(--text-muted)' : 'white'
-            }}
-            disabled={isLogged}
-            onClick={onLogMeal}
-            id="next-meal-log-btn"
-          >
-            {isLogged ? '✓ LOGGED' : 'LOG MEAL'}
           </button>
         </div>
       </div>

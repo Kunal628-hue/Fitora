@@ -80,7 +80,10 @@ export default function RecipeModal({ isOpen, onClose, meal, targetCalories, isL
         {/* Nutrition Bar */}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
           <span className="meal-meta-badge calories">{Math.round(targetCalories)} kcal</span>
-          <span className="meal-meta-badge">⏱️ {meal.prepTime}</span>
+          <span className="meal-meta-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            {meal.prepTime}
+          </span>
           <span className="meal-meta-badge" style={{ borderLeft: '3px solid var(--color-protein)' }}>
             P: {scaledProtein}g
           </span>
@@ -120,26 +123,14 @@ export default function RecipeModal({ isOpen, onClose, meal, targetCalories, isL
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex' }}>
           <button 
             type="button" 
             className="btn btn-secondary" 
-            style={{ flex: 1 }} 
+            style={{ width: '100%' }} 
             onClick={onClose}
           >
             Close
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ flex: 1 }}
-            disabled={isLogged}
-            onClick={() => {
-              onLog();
-              onClose();
-            }}
-          >
-            {isLogged ? '✓ Logged' : 'Log Meal'}
           </button>
         </div>
       </div>

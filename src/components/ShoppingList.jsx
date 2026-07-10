@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 /**
  * ShoppingList - Compiles and consolidates ingredients from all active scaled meals.
  * Includes copy-to-clipboard functionality and local purchase checking.
  */
-export default function ShoppingList({ mealsConfig }) {
+export default function ShoppingList({ weeklyDietPlan, selectedDayIndex }) {
+  const [viewMode, setViewMode] = useState('week'); // 'day' or 'week'
   const [checkedItems, setCheckedItems] = useState({});
   const [copied, setCopied] = useState(false);
 
@@ -12,7 +13,24 @@ export default function ShoppingList({ mealsConfig }) {
   const getAggregatedIngredients = () => {
     const agg = {};
 
-    mealsConfig.forEach(({ meal, targetCalories }) => {
+    let activeMealsConfigs = [];
+    if (viewMode === 'day') {
+      const currentDay = weeklyDietPlan && weeklyDietPlan[selectedDayIndex];
+      if (currentDay && currentDay.meals) {
+        activeMealsConfigs = currentDay.meals;
+      }
+    } else {
+      // Entire week
+      if (weeklyDietPlan && weeklyDietPlan.length > 0) {
+        weeklyDietPlan.forEach(day => {
+          if (day && day.meals) {
+            activeMealsConfigs.push(...day.meals);
+          }
+        });
+      }
+    }
+
+    activeMealsConfigs.forEach(({ meal, targetCalories }) => {
       if (!meal) return;
       const scaleFactor = targetCalories / meal.baseCalories;
 
@@ -78,19 +96,61 @@ export default function ShoppingList({ mealsConfig }) {
 
   return (
     <div className="step-container">
-      <div className="shopping-list-actions">
+      <div 
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '2rem', 
+          flexWrap: 'wrap', 
+          gap: '1.5rem' 
+        }}
+      >
         <div>
           <h2 style={{ fontSize: '1.6rem' }}>Consolidated Shopping List</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>All ingredients scaled for your daily targets.</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            {viewMode === 'day' ? "Ingredients scaled for today's targets." : "Ingredients scaled for the entire week's targets."}
+          </p>
         </div>
-        <button 
-          type="button" 
-          className="btn btn-outline" 
-          onClick={copyToClipboard}
-          id="btn-copy-shopping"
-        >
-          {copied ? '✓ Copied!' : '📋 Copy List'}
-        </button>
+        
+        {/* Toggle & Copy buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="toggle-group-row" style={{ height: '38px', minHeight: '38px' }}>
+            <button
+              type="button"
+              className={`toggle-btn ${viewMode === 'day' ? 'active' : ''}`}
+              onClick={() => setViewMode('day')}
+              style={{ padding: '0 1rem', border: 'none', background: 'transparent' }}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+              onClick={() => setViewMode('week')}
+              style={{ padding: '0 1rem', border: 'none', background: 'transparent' }}
+            >
+              This Week
+            </button>
+          </div>
+
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
+            style={{ minHeight: '38px', height: '38px', padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+            onClick={copyToClipboard}
+            id="btn-copy-shopping"
+          >
+            {copied ? (
+              <span>✓ Copied!</span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                Copy List
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="shopping-list-grid">
@@ -105,7 +165,7 @@ export default function ShoppingList({ mealsConfig }) {
               onClick={() => handleToggleCheck(itemKey)}
               id={`shopping-item-${idx}`}
             >
-              <div className="shopping-item-left">
+              <div className="shopping-item-left" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div className="shopping-checkbox">
                   {isChecked && <span style={{ color: 'white', fontSize: '0.8rem', fontWeight: 'bold' }}>✓</span>}
                 </div>

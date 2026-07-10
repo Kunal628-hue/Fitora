@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import MealColumn from './components/MealColumn';
-import NextMealCard from './components/NextMealCard';
 import ProteinCircle from './components/ProteinCircle';
 import DynamicChart from './components/DynamicChart';
 import RecipeModal from './components/RecipeModal';
-import ShoppingList from './components/ShoppingList';
 import RoutineBrowser from './components/RoutineBrowser';
 import ActiveWorkout from './components/ActiveWorkout';
 import { MEAL_TEMPLATES } from './data/meals';
 import { WORKOUT_ROUTINES } from './data/workoutData';
-import { RECIPES_CATALOG } from './data/recipesData';
 import RecipesCatalog from './components/RecipesCatalog';
-import { calculateBMR, calculateTDEE, calculateCalorieTarget, calculateMacros } from './utils/nutrition';
+import { calculateBMR, calculateTDEE } from './utils/nutrition';
+import { generateAiPlan, generateSingleMealAi, generateLocalFallbackPlan } from './utils/ai';
+import ChatBot from './components/ChatBot';
 
 export default function App() {
   // Navigation
@@ -20,82 +19,259 @@ export default function App() {
   // Input Panel Form State (Pre-filled with Design 2 values)
   const [age, setAge] = useState('25');
   const [weight, setWeight] = useState('75');
-  const [height, setHeight] = useState('180');
+  const [height, setHeight] = useState('5.9');
   const [steps, setSteps] = useState('8000');
   const [sleep, setSleep] = useState('7.5');
   const [preference, setPreference] = useState('veg'); // veg / non
   const [goal, setGoal] = useState('bulk'); // cut / bulk (Design 2 goal toggles)
+  const [extraPreferences, setExtraPreferences] = useState('');
 
   // Target values state
-  const [calorieTarget, setCalorieTarget] = useState(2450);
-  const [proteinTarget, setProteinTarget] = useState(185);
-  const [carbTarget, setCarbTarget] = useState(220);
-  const [fatTarget, setFatTarget] = useState(65);
+  const [calorieTarget, setCalorieTarget] = useState(3019);
+  const [proteinTarget, setProteinTarget] = useState(302);
+  const [carbTarget, setCarbTarget] = useState(302);
+  const [fatTarget, setFatTarget] = useState(67);
 
-  // Daily logged values
-  const [loggedCalories, setLoggedCalories] = useState(1840); // Pre-filled Design 1 start value
-  const [loggedProtein, setLoggedProtein] = useState(142); // Pre-filled Design 1 start value
-  const [loggedMeals, setLoggedMeals] = useState(['lunch', 'snack']); // Lunch & snack pre-logged to match Design 1 logs (1840 kcal total)
+  // AI-generated 7-day plans
+  const [weeklyDietPlan, setWeeklyDietPlan] = useState([]);
+  const [weeklyWorkoutPlan, setWeeklyWorkoutPlan] = useState([]);
 
-  // Active meals config
-  const [mealsConfig, setMealsConfig] = useState([]);
+  // Daily logged values per day index
+  const [loggedDays, setLoggedDays] = useState({
+    0: { calories: 0, protein: 0, meals: [] },
+    1: { calories: 0, protein: 0, meals: [] },
+    2: { calories: 0, protein: 0, meals: [] },
+    3: { calories: 0, protein: 0, meals: [] },
+    4: { calories: 0, protein: 0, meals: [] },
+    5: { calories: 0, protein: 0, meals: [] },
+    6: { calories: 0, protein: 0, meals: [] },
+  });
 
-  // Workout state variables
-  const [workoutDayIndex, setWorkoutDayIndex] = useState(0);
+  // Selected Day Index (Monday is 0, Sunday is 6)
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+
+  // Gym streak & active workout variables
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [completedDays, setCompletedDays] = useState([]); // Array of day indices completed this week
 
-  // Modal State
+  // Modal & UI states
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMealSlot, setSelectedMealSlot] = useState(null);
   const [selectedCatalogRecipe, setSelectedCatalogRecipe] = useState(null);
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('fitora_ai_provider') || 'groq'); // 'gemini' | 'openrouter' | 'groq'
+  const [openRouterModel, setOpenRouterModel] = useState(() => localStorage.getItem('fitora_openrouter_model') || 'llama-3.3-70b-versatile');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const secureApiKey = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || '';
 
   // Toast
   const [toast, setToast] = useState('');
 
+  // Backward compatible references
+  const workoutDayIndex = selectedDayIndex;
+
+  // Active day's computed values
+  const mealsConfig = weeklyDietPlan[selectedDayIndex]?.meals || [];
+  const currentDayLog = loggedDays[selectedDayIndex] || { calories: 0, protein: 0, meals: [] };
+  const loggedMeals = currentDayLog.meals || [];
+
+  // Dynamically calculate logged metrics based on active configuration to ensure 100% correctness
+  let computedCalories = 0;
+  let computedProtein = 0;
+
+  loggedMeals.forEach(slotKey => {
+    const config = mealsConfig.find(c => c.slot === slotKey);
+    if (config && config.meal) {
+      const scaleFactor = config.targetCalories / config.meal.baseCalories;
+      const mealProtein = Math.round(config.meal.macros.protein * scaleFactor);
+      const mealCalories = Math.round(config.targetCalories);
+      computedCalories += mealCalories;
+      computedProtein += mealProtein;
+    }
+  });
+
+  const customEntries = currentDayLog.customEntries || [];
+  customEntries.forEach(entry => {
+    computedCalories += entry.calories;
+    computedProtein += entry.protein;
+  });
+
+  // Backward compatibility fallback for legacy logs
+  if (computedCalories === 0 && computedProtein === 0 && (currentDayLog.calories > 0 || currentDayLog.protein > 0)) {
+    computedCalories = currentDayLog.calories || 0;
+    computedProtein = currentDayLog.protein || 0;
+  }
+
+  const loggedCalories = computedCalories;
+  const loggedProtein = computedProtein;
+
+  // Initial calculation and generation on mount
   // Initial calculation and generation on mount
   useEffect(() => {
-    // Determine default workout day based on actual day of the week
     const d = new Date().getDay();
     const todayIdx = d === 0 ? 6 : d - 1; // Map Sun(0)->6, Mon(1)->0 ... Sat(6)->5
-    setWorkoutDayIndex(todayIdx);
+    setSelectedDayIndex(todayIdx);
 
     // Load saved data from localStorage
     const savedProfile = localStorage.getItem('fitora_merged_profile');
-    const savedMeals = localStorage.getItem('fitora_merged_meals');
-    const savedLogged = localStorage.getItem('fitora_merged_logged');
+    const savedDietPlan = localStorage.getItem('fitora_diet_plan');
+    const savedWorkoutPlan = localStorage.getItem('fitora_workout_plan');
+    const savedLoggedDays = localStorage.getItem('fitora_logged_days');
     const savedStreak = localStorage.getItem('fitora_workout_streak');
     const savedCompleted = localStorage.getItem('fitora_workout_completed');
+    const savedProvider = localStorage.getItem('fitora_ai_provider');
+    const savedModel = localStorage.getItem('fitora_openrouter_model');
 
-    if (savedProfile && savedMeals && savedLogged) {
-      const profile = JSON.parse(savedProfile);
-      setAge(profile.age);
-      setWeight(profile.weight);
-      setHeight(profile.height);
-      setSteps(profile.steps);
-      setSleep(profile.sleep);
-      setPreference(profile.preference);
-      setGoal(profile.goal);
-
-      setCalorieTarget(profile.calorieTarget);
-      setProteinTarget(profile.proteinTarget);
-      setCarbTarget(profile.carbTarget);
-      setFatTarget(profile.fatTarget);
-
-      setMealsConfig(JSON.parse(savedMeals));
-      
-      const logged = JSON.parse(savedLogged);
-      setLoggedCalories(logged.calories);
-      setLoggedProtein(logged.protein);
-      setLoggedMeals(logged.meals);
-    } else {
-      // Run default plan generation
-      generatePlan(25, 75, 180, 8000, 7.5, 'veg', 'bulk', true);
+    if (savedProvider) {
+      setAiProvider(savedProvider);
+    }
+    if (savedModel) {
+      if (savedModel === 'nvidia/llama-3.1-nemotron-70b-instruct') {
+        localStorage.setItem('fitora_openrouter_model', 'nvidia/llama-3.3-nemotron-super-49b-v1.5');
+        setOpenRouterModel('nvidia/llama-3.3-nemotron-super-49b-v1.5');
+      } else {
+        setOpenRouterModel(savedModel);
+      }
     }
 
-    if (savedStreak) setWorkoutStreak(parseInt(savedStreak, 10));
-    if (savedCompleted) setCompletedDays(JSON.parse(savedCompleted));
+    let parsedSuccessfully = false;
+
+    if (savedProfile && savedProfile !== 'undefined' &&
+        savedDietPlan && savedDietPlan !== 'undefined' &&
+        savedWorkoutPlan && savedWorkoutPlan !== 'undefined' &&
+        savedLoggedDays && savedLoggedDays !== 'undefined') {
+      try {
+        const profile = JSON.parse(savedProfile);
+        
+        let loadedHeight = profile.height;
+        if (loadedHeight && parseFloat(loadedHeight) > 15) {
+          loadedHeight = (parseFloat(loadedHeight) / 30.48).toFixed(1);
+          profile.height = loadedHeight;
+          localStorage.setItem('fitora_merged_profile', JSON.stringify(profile));
+        }
+
+        setAge(profile.age || '25');
+        setWeight(profile.weight || '75');
+        setHeight(loadedHeight || '5.9');
+        setSteps(profile.steps || '8000');
+        setSleep(profile.sleep || '7.5');
+        setPreference(profile.preference || 'veg');
+        setExtraPreferences(profile.extraPreferences || '');
+        setGoal(profile.goal || 'bulk');
+
+        setCalorieTarget(profile.calorieTarget || 3019);
+        setProteinTarget(profile.proteinTarget || 302);
+        setCarbTarget(profile.carbTarget || 302);
+        setFatTarget(profile.fatTarget || 67);
+
+        const parsedDiet = JSON.parse(savedDietPlan);
+        const parsedWorkout = JSON.parse(savedWorkoutPlan);
+
+        const isDietPlanValid = Array.isArray(parsedDiet) && parsedDiet.length === 7 &&
+          parsedDiet.every(d => 
+            Array.isArray(d.meals) && 
+            d.meals.length === 4 && 
+            d.meals.every(m => 
+              m.meal && 
+              typeof m.meal === 'object' && 
+              Array.isArray(m.meal.ingredients) && 
+              m.meal.ingredients.length > 0 && 
+              typeof m.targetCalories === 'number' && 
+              !isNaN(m.targetCalories)
+            )
+          );
+
+        const isWorkoutPlanValid = Array.isArray(parsedWorkout) && parsedWorkout.length === 7;
+
+        if (isDietPlanValid && isWorkoutPlanValid) {
+          setWeeklyDietPlan(parsedDiet);
+          setWeeklyWorkoutPlan(parsedWorkout);
+          setLoggedDays(JSON.parse(savedLoggedDays));
+          parsedSuccessfully = true;
+        }
+      } catch (err) {
+        console.error("Error loading saved plan, falling back...", err);
+      }
+    }
+
+    if (!parsedSuccessfully) {
+      localStorage.removeItem('fitora_merged_profile');
+      localStorage.removeItem('fitora_diet_plan');
+      localStorage.removeItem('fitora_workout_plan');
+      localStorage.removeItem('fitora_logged_days');
+      
+      setAge('25');
+      setWeight('75');
+      setHeight('5.9');
+      setSteps('8000');
+      setSleep('7.5');
+      setPreference('veg');
+      setExtraPreferences('');
+      setGoal('bulk');
+
+      const bmr = calculateBMR(75, 5.9 * 30.48, 25, 'male');
+      const tdee = calculateTDEE(bmr, 'moderate');
+      const calories = Math.round(tdee + 300);
+      const p = Math.round((calories * 0.40) / 4);
+      const c = Math.round((calories * 0.40) / 4);
+      const f = Math.round((calories * 0.20) / 9);
+
+      setCalorieTarget(calories);
+      setProteinTarget(p);
+      setCarbTarget(c);
+      setFatTarget(f);
+
+      const plan = generateLocalFallbackPlan({ preference: 'veg', calorieTarget: calories });
+      setWeeklyDietPlan(plan.dietPlan);
+      setWeeklyWorkoutPlan(plan.workoutPlan);
+
+      let initialLogs = {
+        0: { calories: 0, protein: 0, meals: [] },
+        1: { calories: 0, protein: 0, meals: [] },
+        2: { calories: 0, protein: 0, meals: [] },
+        3: { calories: 0, protein: 0, meals: [] },
+        4: { calories: 0, protein: 0, meals: [] },
+        5: { calories: 0, protein: 0, meals: [] },
+        6: { calories: 0, protein: 0, meals: [] },
+      };
+
+      const todayMeals = plan.dietPlan[todayIdx]?.meals || [];
+      let todayCal = 0;
+      let todayProt = 0;
+      const loggedSlots = ['lunch', 'snack'];
+      
+      loggedSlots.forEach(slot => {
+        const config = todayMeals.find(m => m.slot === slot);
+        if (config) {
+          todayCal += Math.round(config.targetCalories);
+          const scaleFactor = config.targetCalories / config.meal.baseCalories;
+          todayProt += Math.round(config.meal.macros.protein * scaleFactor);
+        }
+      });
+
+      initialLogs[todayIdx] = {
+        calories: todayCal,
+        protein: todayProt,
+        meals: loggedSlots
+      };
+
+      setLoggedDays(initialLogs);
+      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
+    }
+
+    if (savedStreak) setWorkoutStreak(parseInt(savedStreak, 10) || 0);
+    if (savedCompleted && savedCompleted !== 'undefined') {
+      try {
+        setCompletedDays(JSON.parse(savedCompleted));
+      } catch (e) {
+        console.error("Error loading completed workouts:", e);
+      }
+    }
+    
+    setIsLoaded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const showToast = (message) => {
@@ -103,34 +279,39 @@ export default function App() {
     setTimeout(() => setToast(''), 3000);
   };
 
-  // Logic to generate calorie & macro targets and meals
-  const generatePlan = (vAge, vWeight, vHeight, vSteps, vSleep, vPref, vGoal, isInitial = false) => {
-    const bmr = calculateBMR(vWeight, vHeight, vAge, 'male');
+  // Recalculate targets and plan instantly on detail change (local fallback updates for fast reactions)
+  useEffect(() => {
+    if (!isLoaded || isGenerating) return;
+
+    const parsedAge = parseInt(age, 10);
+    const parsedWeight = parseFloat(weight);
+    const parsedHeight = parseFloat(height);
+    const parsedSteps = parseInt(steps, 10) || 8000;
+    const parsedSleep = parseFloat(sleep);
+
+    if (isNaN(parsedAge) || isNaN(parsedWeight) || isNaN(parsedHeight) || isNaN(parsedSleep)) {
+      return;
+    }
+
+    const heightCm = parsedHeight * 30.48;
+    const bmr = calculateBMR(parsedWeight, heightCm, parsedAge, 'male');
     
-    const stepsNum = parseInt(vSteps, 10) || 8000;
     let activityLevel = 'moderate';
-    if (stepsNum < 5000) activityLevel = 'sedentary';
-    else if (stepsNum < 8000) activityLevel = 'light';
-    else if (stepsNum < 12000) activityLevel = 'moderate';
+    if (parsedSteps < 5000) activityLevel = 'sedentary';
+    else if (parsedSteps < 8000) activityLevel = 'light';
+    else if (parsedSteps < 12000) activityLevel = 'moderate';
     else activityLevel = 'active';
 
     const tdee = calculateTDEE(bmr, activityLevel);
 
     let calories = tdee;
-    if (vGoal === 'cut') {
+    if (goal === 'cut') {
       calories = tdee - 500;
-    } else if (vGoal === 'bulk') {
+    } else if (goal === 'bulk') {
       calories = tdee + 300;
     }
-    
-    // Pin to Design 2 values if default inputs are used
-    if (vAge === 25 && vWeight === 75 && vHeight === 180 && stepsNum === 8000 && vGoal === 'bulk') {
-      calories = 2450;
-    } else {
-      calories = Math.round(calories);
-    }
+    calories = Math.round(calories);
 
-    // P: 40%, C: 40%, F: 20% splits
     const p = Math.round((calories * 0.40) / 4);
     const c = Math.round((calories * 0.40) / 4);
     const f = Math.round((calories * 0.20) / 9);
@@ -140,121 +321,287 @@ export default function App() {
     setCarbTarget(c);
     setFatTarget(f);
 
-    const slots = [
-      { key: 'breakfast', pct: 0.224 }, // ~550 kcal of 2450 kcal
-      { key: 'lunch', pct: 0.306 },     // ~750 kcal of 2450 kcal
-      { key: 'snack', pct: 0.143 },     // ~350 kcal of 2450 kcal
-      { key: 'dinner', pct: 0.327 },    // ~800 kcal of 2450 kcal
-    ];
-
-    const generatedMeals = slots.map((slot) => {
-      const templates = MEAL_TEMPLATES[slot.key] || [];
-      let filtered = templates.filter((t) => t.diets.includes(vPref));
-      if (filtered.length === 0) {
-        filtered = templates;
-      }
-      const defaultMeal = filtered[0] || templates[0];
-      const targetCalories = calories * slot.pct;
-
-      return {
-        slot: slot.key,
-        meal: defaultMeal,
-        targetCalories,
-      };
+    const plan = generateLocalFallbackPlan({
+      preference,
+      calorieTarget: calories
     });
 
-    setMealsConfig(generatedMeals);
-    
-    if (!isInitial) {
-      setLoggedCalories(0);
-      setLoggedProtein(0);
-      setLoggedMeals([]);
-      localStorage.setItem('fitora_merged_logged', JSON.stringify({ calories: 0, protein: 0, meals: [] }));
-    } else {
-      localStorage.setItem('fitora_merged_logged', JSON.stringify({ calories: 1840, protein: 142, meals: ['lunch', 'snack'] }));
-    }
+    setWeeklyDietPlan(plan.dietPlan);
+    setWeeklyWorkoutPlan(plan.workoutPlan);
 
     const profile = {
-      age: vAge,
-      weight: vWeight,
-      height: vHeight,
-      steps: vSteps,
-      sleep: vSleep,
-      preference: vPref,
-      goal: vGoal,
+      age: parsedAge.toString(),
+      weight: parsedWeight.toString(),
+      height: parsedHeight.toString(),
+      steps: parsedSteps.toString(),
+      sleep: parsedSleep.toString(),
+      preference,
+      extraPreferences,
+      goal,
       calorieTarget: calories,
       proteinTarget: p,
       carbTarget: c,
       fatTarget: f,
     };
-
     localStorage.setItem('fitora_merged_profile', JSON.stringify(profile));
-    localStorage.setItem('fitora_merged_meals', JSON.stringify(generatedMeals));
+    localStorage.setItem('fitora_diet_plan', JSON.stringify(plan.dietPlan));
+    localStorage.setItem('fitora_workout_plan', JSON.stringify(plan.workoutPlan));
+
+  }, [age, weight, height, steps, sleep, preference, goal, extraPreferences, isLoaded]);
+
+  // Full AI Generation when clicking "Generate My Plan"
+  const handleGeneratePlan = async () => {
+    setIsGenerating(true);
+    showToast('Generating personalized AI plan...');
+
+    const parsedAge = parseInt(age, 10);
+    const parsedWeight = parseFloat(weight);
+    const parsedHeight = parseFloat(height);
+    const parsedSteps = parseInt(steps, 10) || 8000;
+    const parsedSleep = parseFloat(sleep);
+
+    const heightCm = parsedHeight * 30.48;
+    const bmr = calculateBMR(parsedWeight, heightCm, parsedAge, 'male');
     
-    showToast(isInitial ? 'Welcome back! Plan loaded.' : 'Personalized plan generated!');
+    let activityLevel = 'moderate';
+    if (parsedSteps < 5000) activityLevel = 'sedentary';
+    else if (parsedSteps < 8000) activityLevel = 'light';
+    else if (parsedSteps < 12000) activityLevel = 'moderate';
+    else activityLevel = 'active';
+
+    const tdee = calculateTDEE(bmr, activityLevel);
+
+    let calories = tdee;
+    if (goal === 'cut') {
+      calories = tdee - 500;
+    } else if (goal === 'bulk') {
+      calories = tdee + 300;
+    }
+    calories = Math.round(calories);
+
+    const p = Math.round((calories * 0.40) / 4);
+    const c = Math.round((calories * 0.40) / 4);
+    const f = Math.round((calories * 0.20) / 9);
+
+    setCalorieTarget(calories);
+    setProteinTarget(p);
+    setCarbTarget(c);
+    setFatTarget(f);
+
+    const apiKey = secureApiKey;
+    let generatedPlan = null;
+
+    if (apiKey) {
+      try {
+        generatedPlan = await generateAiPlan({
+          age: parsedAge,
+          weight: parsedWeight,
+          height: Math.round(heightCm),
+          steps: parsedSteps,
+          sleep: parsedSleep,
+          preference,
+          extraPreferences,
+          goal,
+          targets: {
+            calorieTarget: calories,
+            proteinTarget: p,
+            carbTarget: c,
+            fatTarget: f
+          },
+          apiKey,
+          provider: aiProvider,
+          model: openRouterModel
+        });
+      } catch (err) {
+        console.error(err);
+        showToast('AI Plan generation failed. Using local fallback.');
+      }
+    }
+
+    if (!generatedPlan) {
+      generatedPlan = generateLocalFallbackPlan({
+        preference,
+        calorieTarget: calories
+      });
+    }
+
+    const finalDietPlan = generatedPlan.dietPlan || generatedPlan.diet_plan || generatedPlan.dietplan || [];
+    const finalWorkoutPlan = generatedPlan.workoutPlan || generatedPlan.workout_plan || generatedPlan.workoutplan || [];
+
+    const isDietValid = Array.isArray(finalDietPlan) && finalDietPlan.length === 7 &&
+      finalDietPlan.every(d => 
+        Array.isArray(d.meals) && 
+        d.meals.length === 4 && 
+        d.meals.every(m => 
+          m.meal && 
+          typeof m.meal === 'object' && 
+          Array.isArray(m.meal.ingredients) && 
+          m.meal.ingredients.length > 0 && 
+          typeof m.targetCalories === 'number' && 
+          !isNaN(m.targetCalories)
+        )
+      );
+
+    const isWorkoutValid = Array.isArray(finalWorkoutPlan) && finalWorkoutPlan.length === 7;
+
+    if (isDietValid && isWorkoutValid) {
+      setWeeklyDietPlan(finalDietPlan);
+      setWeeklyWorkoutPlan(finalWorkoutPlan);
+      localStorage.setItem('fitora_diet_plan', JSON.stringify(finalDietPlan));
+      localStorage.setItem('fitora_workout_plan', JSON.stringify(finalWorkoutPlan));
+
+      // Reset daily log states for the new plan
+      let initialLogs = {
+        0: { calories: 0, protein: 0, meals: [] },
+        1: { calories: 0, protein: 0, meals: [] },
+        2: { calories: 0, protein: 0, meals: [] },
+        3: { calories: 0, protein: 0, meals: [] },
+        4: { calories: 0, protein: 0, meals: [] },
+        5: { calories: 0, protein: 0, meals: [] },
+        6: { calories: 0, protein: 0, meals: [] },
+      };
+      setLoggedDays(initialLogs);
+      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
+
+      showToast('Personalized AI plan generated!');
+    } else {
+      showToast('AI response was incomplete. Using local fallback.');
+      const fallback = generateLocalFallbackPlan({
+        preference,
+        calorieTarget: calories
+      });
+      setWeeklyDietPlan(fallback.dietPlan);
+      setWeeklyWorkoutPlan(fallback.workoutPlan);
+      localStorage.setItem('fitora_diet_plan', JSON.stringify(fallback.dietPlan));
+      localStorage.setItem('fitora_workout_plan', JSON.stringify(fallback.workoutPlan));
+
+      let initialLogs = {
+        0: { calories: 0, protein: 0, meals: [] },
+        1: { calories: 0, protein: 0, meals: [] },
+        2: { calories: 0, protein: 0, meals: [] },
+        3: { calories: 0, protein: 0, meals: [] },
+        4: { calories: 0, protein: 0, meals: [] },
+        5: { calories: 0, protein: 0, meals: [] },
+        6: { calories: 0, protein: 0, meals: [] },
+      };
+      setLoggedDays(initialLogs);
+      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
+    }
+    setIsGenerating(false);
   };
 
-  const handleGeneratePlan = () => {
-    generatePlan(
-      parseInt(age, 10),
-      parseFloat(weight),
-      parseFloat(height),
-      parseInt(steps, 10),
-      parseFloat(sleep),
-      preference,
-      goal
-    );
-  };
+  const handleSwapMeal = async (slotKey) => {
+    const dayPlan = weeklyDietPlan[selectedDayIndex];
+    if (!dayPlan) return;
+    
+    const config = dayPlan.meals.find((c) => c.slot === slotKey);
+    if (!config) return;
 
-  const handleSwapMeal = (slotKey) => {
-    const templates = MEAL_TEMPLATES[slotKey] || [];
-    let filtered = templates.filter((t) => t.diets.includes(preference));
-    if (filtered.length === 0) {
-      filtered = templates;
+    const apiKey = secureApiKey;
+    let newMeal = null;
+
+    if (apiKey) {
+      showToast('Swapping meal using AI...');
+      try {
+        newMeal = await generateSingleMealAi({
+          slot: slotKey,
+          preference,
+          extraPreferences,
+          goal,
+          targetCalories: config.targetCalories,
+          apiKey,
+          provider: aiProvider,
+          model: openRouterModel
+        });
+      } catch (err) {
+        console.error(err);
+        showToast('AI Swap failed. Using local database swap.');
+      }
     }
 
-    const currentConfig = mealsConfig.find((c) => c.slot === slotKey);
-    const currentMealId = currentConfig?.meal?.id;
+    const isMealValid = newMeal && 
+      typeof newMeal === 'object' && 
+      Array.isArray(newMeal.ingredients) && 
+      newMeal.ingredients.length > 0;
 
-    const otherChoices = filtered.filter((t) => t.id !== currentMealId);
-    const finalChoices = otherChoices.length > 0 ? otherChoices : filtered;
+    if (!isMealValid) {
+      if (newMeal) {
+        showToast('AI Swap response was incomplete. Using local database swap.');
+      }
+      const templates = MEAL_TEMPLATES[slotKey] || [];
+      let filtered = templates.filter((t) => t.diets.includes(preference));
+      if (filtered.length === 0) {
+        filtered = templates;
+      }
 
-    if (finalChoices.length === 0) {
-      showToast('No alternative recipes found.');
-      return;
+      const currentMealId = config.meal?.id;
+      const otherChoices = filtered.filter((t) => t.id !== currentMealId);
+      const finalChoices = otherChoices.length > 0 ? otherChoices : filtered;
+
+      if (finalChoices.length === 0) {
+        showToast('No alternative recipes found.');
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * finalChoices.length);
+      newMeal = finalChoices[randomIndex];
     }
 
-    const randomIndex = Math.floor(Math.random() * finalChoices.length);
-    const newMeal = finalChoices[randomIndex];
-
-    const wasLogged = loggedMeals.includes(slotKey);
-    let newLoggedCalories = loggedCalories;
-    let newLoggedProtein = loggedProtein;
-    let newLoggedMeals = [...loggedMeals];
-
-    if (wasLogged) {
-      const prevScaleFactor = currentConfig.targetCalories / currentConfig.meal.baseCalories;
-      const prevProtein = Math.round(currentConfig.meal.macros.protein * prevScaleFactor);
-      
-      newLoggedCalories = Math.max(0, loggedCalories - Math.round(currentConfig.targetCalories));
-      newLoggedProtein = Math.max(0, loggedProtein - prevProtein);
-      newLoggedMeals = loggedMeals.filter((s) => s !== slotKey);
-      
-      setLoggedCalories(newLoggedCalories);
-      setLoggedProtein(newLoggedProtein);
-      setLoggedMeals(newLoggedMeals);
-    }
-
-    const updatedMeals = mealsConfig.map((c) => {
+    // Update meal config in diet plan
+    const updatedMeals = dayPlan.meals.map((c) => {
       if (c.slot === slotKey) {
         return { ...c, meal: newMeal };
       }
       return c;
     });
 
-    setMealsConfig(updatedMeals);
-    localStorage.setItem('fitora_merged_meals', JSON.stringify(updatedMeals));
-    localStorage.setItem('fitora_merged_logged', JSON.stringify({ calories: newLoggedCalories, protein: newLoggedProtein, meals: newLoggedMeals }));
+    const updatedPlan = weeklyDietPlan.map((p, idx) => {
+      if (idx === selectedDayIndex) {
+        return { ...p, meals: updatedMeals };
+      }
+      return p;
+    });
+
+    setWeeklyDietPlan(updatedPlan);
+    localStorage.setItem('fitora_diet_plan', JSON.stringify(updatedPlan));
+
+    const wasLogged = loggedMeals.includes(slotKey);
+    let newLoggedMeals = [...loggedMeals];
+
+    if (wasLogged) {
+      newLoggedMeals = loggedMeals.filter((s) => s !== slotKey);
+      
+      let updatedCalories = 0;
+      let updatedProtein = 0;
+
+      newLoggedMeals.forEach(s => {
+        const c = mealsConfig.find(m => m.slot === s);
+        if (c && c.meal) {
+          const sf = c.targetCalories / c.meal.baseCalories;
+          updatedCalories += Math.round(c.targetCalories);
+          updatedProtein += Math.round(c.meal.macros.protein * sf);
+        }
+      });
+
+      const customEntries = currentDayLog.customEntries || [];
+      customEntries.forEach(entry => {
+        updatedCalories += entry.calories;
+        updatedProtein += entry.protein;
+      });
+
+      const updatedLogs = {
+        ...loggedDays,
+        [selectedDayIndex]: {
+          ...currentDayLog,
+          calories: updatedCalories,
+          protein: updatedProtein,
+          meals: newLoggedMeals,
+        }
+      };
+      setLoggedDays(updatedLogs);
+      localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
+    }
+
     showToast(`Swapped to ${newMeal.name}`);
   };
 
@@ -267,20 +614,39 @@ export default function App() {
     const scaleFactor = config.targetCalories / config.meal.baseCalories;
     const mealProtein = Math.round(config.meal.macros.protein * scaleFactor);
     const mealCalories = Math.round(config.targetCalories);
-
-    const newCalories = loggedCalories + mealCalories;
-    const newProtein = loggedProtein + mealProtein;
     const newLoggedMeals = [...loggedMeals, slotKey];
 
-    setLoggedCalories(newCalories);
-    setLoggedProtein(newProtein);
-    setLoggedMeals(newLoggedMeals);
+    // Compute updated total calories and protein dynamically
+    let updatedCalories = mealCalories;
+    let updatedProtein = mealProtein;
 
-    localStorage.setItem('fitora_merged_logged', JSON.stringify({
-      calories: newCalories,
-      protein: newProtein,
-      meals: newLoggedMeals,
-    }));
+    loggedMeals.forEach(s => {
+      const c = mealsConfig.find(m => m.slot === s);
+      if (c && c.meal) {
+        const sf = c.targetCalories / c.meal.baseCalories;
+        updatedCalories += Math.round(c.targetCalories);
+        updatedProtein += Math.round(c.meal.macros.protein * sf);
+      }
+    });
+
+    const customEntries = currentDayLog.customEntries || [];
+    customEntries.forEach(entry => {
+      updatedCalories += entry.calories;
+      updatedProtein += entry.protein;
+    });
+
+    const updatedLogs = {
+      ...loggedDays,
+      [selectedDayIndex]: {
+        ...currentDayLog,
+        calories: updatedCalories,
+        protein: updatedProtein,
+        meals: newLoggedMeals,
+      }
+    };
+
+    setLoggedDays(updatedLogs);
+    localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
 
     showToast(`Logged ${config.meal.name}! (+${mealCalories} kcal)`);
   };
@@ -316,16 +682,40 @@ export default function App() {
       return;
     }
 
-    const newCalories = loggedCalories + kcal;
-    const newProtein = loggedProtein + protein;
+    const customEntriesList = currentDayLog.customEntries || [];
+    const newEntry = { id: `custom_${Date.now()}`, calories: kcal, protein: protein };
+    const updatedCustomEntries = [...customEntriesList, newEntry];
 
-    setLoggedCalories(newCalories);
-    setLoggedProtein(newProtein);
-    localStorage.setItem('fitora_merged_logged', JSON.stringify({
-      calories: newCalories,
-      protein: newProtein,
-      meals: loggedMeals
-    }));
+    // Compute new totals
+    let computedCalories = kcal;
+    let computedProtein = protein;
+
+    loggedMeals.forEach(slotKey => {
+      const config = mealsConfig.find(c => c.slot === slotKey);
+      if (config && config.meal) {
+        const scaleFactor = config.targetCalories / config.meal.baseCalories;
+        computedCalories += Math.round(config.targetCalories);
+        computedProtein += Math.round(config.meal.macros.protein * scaleFactor);
+      }
+    });
+
+    customEntriesList.forEach(entry => {
+      computedCalories += entry.calories;
+      computedProtein += entry.protein;
+    });
+
+    const updatedLogs = {
+      ...loggedDays,
+      [selectedDayIndex]: {
+        ...currentDayLog,
+        calories: computedCalories,
+        protein: computedProtein,
+        customEntries: updatedCustomEntries
+      }
+    };
+
+    setLoggedDays(updatedLogs);
+    localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
 
     showToast(`Added custom entry: +${kcal} kcal, +${protein}g Protein`);
   };
@@ -388,14 +778,6 @@ export default function App() {
           </button>
           <button 
             type="button" 
-            className={`nav-link-btn ${activeTab === 'shopping' ? 'active' : ''}`}
-            onClick={() => setActiveTab('shopping')}
-            id="nav-btn-shopping"
-          >
-            Shopping List
-          </button>
-          <button 
-            type="button" 
             className={`nav-link-btn ${activeTab === 'recipes' ? 'active' : ''}`}
             onClick={() => setActiveTab('recipes')}
             id="nav-btn-recipes"
@@ -405,12 +787,14 @@ export default function App() {
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-secondary)' }}>
           {workoutStreak > 0 && (
-            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(255, 125, 112, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-              🔥 {workoutStreak} Day Streak
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(255, 125, 112, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12.5c-1.38 0-2.5-1.12-2.5-2.5 0-1.89 1.5-3.5 3.5-5.5 2 2 3.5 3.61 3.5 5.5 0 1.38-1.12 2.5-2.5 2.5zM17.66 11.2c-.22-2.15-1.74-4.88-5.66-8.2-3.92 3.32-5.44 6.05-5.66 8.2-1 .92-1.63 2.24-1.63 3.7A5.25 5.25 0 0 0 10.3 20.3a5.25 5.25 0 0 0 7.4 0 5.25 5.25 0 0 0 1.63-3.7c0-1.46-.63-2.78-1.67-3.7z"/></svg>
+              {workoutStreak} Day Streak
             </span>
           )}
-          <span style={{ cursor: 'pointer', fontSize: '1.1rem' }} onClick={() => alert('No new notifications.')}>🔔</span>
-          <span style={{ cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => alert('Logged in as Kunal')}>👤</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }} onClick={() => alert('Logged in as Kunal')}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </span>
         </div>
       </header>
 
@@ -447,30 +831,19 @@ export default function App() {
               </div>
 
               <div className="form-input-group">
-                <label htmlFor="height">Height (CM)</label>
+                <label htmlFor="height">Height (FT)</label>
                 <input
                   type="number"
                   id="height"
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
                   className="inline-input"
-                  min="100"
-                  max="250"
+                  step="0.1"
+                  min="3"
+                  max="8"
                 />
               </div>
 
-              <div className="form-input-group">
-                <label htmlFor="steps">Steps</label>
-                <input
-                  type="number"
-                  id="steps"
-                  value={steps}
-                  onChange={(e) => setSteps(e.target.value)}
-                  className="inline-input"
-                  min="0"
-                  max="50000"
-                />
-              </div>
 
               <div className="form-input-group">
                 <label htmlFor="sleep">Sleep (HRS)</label>
@@ -509,34 +882,28 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Goal toggle */}
-              <div className="form-input-group">
-                <label>Goal</label>
-                <div className="toggle-group-row">
-                  <button
-                    type="button"
-                    className={`toggle-btn ${goal === 'cut' ? 'active' : ''}`}
-                    onClick={() => setGoal('cut')}
-                    id="goal-cut-btn"
-                  >
-                    Cut
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-btn ${goal === 'bulk' ? 'active' : ''}`}
-                    onClick={() => setGoal('bulk')}
-                    id="goal-bulk-btn"
-                  >
-                    Bulk
-                  </button>
-                </div>
-              </div>
 
-              {/* Generate Button */}
+              {/* Extra Preferences */}
+              {/* Extra Preferences */}
+              <div className="form-input-group" style={{ gridColumn: 'span 2' }}>
+                <label htmlFor="extraPreferences">Allergies / Special Requests</label>
+                <input
+                  type="text"
+                  id="extraPreferences"
+                  value={extraPreferences}
+                  onChange={(e) => setExtraPreferences(e.target.value)}
+                  placeholder="e.g. gluten-free, focus legs..."
+                  className="inline-input"
+                />
+              </div>
+            </div>
+
+            {/* Centered Generate Button */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem', width: '100%' }}>
               <button 
                 type="button" 
                 className="btn btn-primary" 
-                style={{ width: '100%', minHeight: '40px', background: 'var(--accent-coral)' }}
+                style={{ width: '100%', maxWidth: '360px', minHeight: '44px', background: 'var(--accent-coral)' }}
                 onClick={handleGeneratePlan}
                 id="generate-plan-btn"
               >
@@ -565,6 +932,116 @@ export default function App() {
             </div>
           </section>
 
+          {/* Weekday Selector Row */}
+          <div 
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(7, 1fr)', 
+              gap: '1rem', 
+              marginBottom: '2.5rem' 
+            }}
+          >
+            {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((dayName, idx) => {
+              const isActive = selectedDayIndex === idx;
+              const dayNumber = `0${idx + 1}`;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedDayIndex(idx)}
+                  style={{
+                    background: '#11131a',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '6px',
+                    padding: '1.25rem 0.5rem',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    transition: 'all var(--transition-normal)',
+                    position: 'relative',
+                    outline: 'none'
+                  }}
+                  id={`db-day-select-${idx}`}
+                >
+                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                    {dayName}
+                  </span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: '900', color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                    {dayNumber}
+                  </span>
+                  {/* Highlight red underline */}
+                  {isActive && (
+                    <div 
+                      style={{ 
+                        position: 'absolute', 
+                        bottom: 0, 
+                        left: 0, 
+                        right: 0, 
+                        height: '3px', 
+                        background: 'var(--accent-red)' 
+                      }} 
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 4 Column Meal Plan menu list (Design 2) */}
+          <section aria-labelledby="daily-meal-plan-menu" style={{ marginBottom: '2.5rem' }}>
+            <div className="section-heading-row" id="daily-meal-plan-menu">
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '800' }}>Personalised Meal Plan</h2>
+            </div>
+            
+            {weeklyDietPlan.length === 0 ? (
+              <div 
+                className="glass-panel" 
+                style={{ 
+                  padding: '2.5rem', 
+                  textAlign: 'center', 
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  border: '1px dashed rgba(255, 255, 255, 0.15)',
+                  borderRadius: '12px',
+                  background: 'rgba(20, 22, 30, 0.5)'
+                }}
+              >
+                 <span style={{ display: 'flex', alignItems: 'center' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style={{ opacity: 0.5, marginBottom: '0.75rem', color: 'var(--text-secondary)' }}><path d="M11 9H9V2H7v7H5V2H3v7c0 2.21 1.79 4 4 4v9h2v-9c2.21 0 4-1.79 4-4V2h-2v7zm10-5c0-1.1-.9-2-2-2h-3v12h3c1.1 0 2-.9 2-2V4zm-5 18h2v-6h-2v6z"/></svg>
+                </span>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>No Meal Plan Generated</h3>
+                <p style={{ maxWidth: '400px', fontSize: '0.85rem', lineHeight: '1.5', margin: '0' }}>
+                  Please enter your profile details above and click <strong>"Generate My Plan"</strong> (or choose your Diet Preference) to build your custom day-wise meal plan.
+                </p>
+              </div>
+            ) : (
+              <div className="menu-grid-4col">
+                {['breakfast', 'lunch', 'snack', 'dinner'].map((slot) => {
+                  const config = mealsConfig.find((c) => c.slot === slot);
+                  if (!config) return null;
+
+                  return (
+                    <MealColumn
+                      key={slot}
+                      slot={slot}
+                      meal={config.meal}
+                      targetCalories={config.targetCalories}
+                      isLogged={loggedMeals.includes(slot)}
+                      onLog={() => handleLogMeal(slot)}
+                      onSwap={() => handleSwapMeal(slot)}
+                      onViewDetails={() => handleViewDetails(slot)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
           {/* Header Section Performance (Design 1) */}
           <section className="summary-performance-section" aria-labelledby="daily-summary-performance">
             <div className="performance-title-group" id="daily-summary-performance">
@@ -583,31 +1060,7 @@ export default function App() {
 
           {/* Trackers Row (Design 1 & 2 layout merge) */}
           <section className="trackers-row-grid" aria-label="Progress Trackers Dashboard">
-            {/* Card 1: Daily Calories horizontal bar (Design 1) */}
-            <div className="tracker-card">
-              <h3 style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Daily Calories
-              </h3>
-              
-              <div style={{ margin: '1rem 0' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  <span style={{ fontSize: '3rem', fontWeight: '800', color: 'var(--accent-red)' }}>
-                    {loggedCalories.toLocaleString()}
-                  </span>
-                  <span style={{ fontSize: '1.8rem', color: 'var(--text-secondary)' }}>
-                    / {calorieTarget.toLocaleString()}
-                  </span>
-                </div>
-              </div>
 
-              <div className="horizontal-progress-bar-container">
-                <div className="horizontal-progress-bar-fill" style={{ width: `${calPercent}%` }}></div>
-              </div>
-
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                {calPercent}% of daily intake consumed. {calRemaining} kcal remaining.
-              </div>
-            </div>
 
             {/* Card 2: Protein Goal Circle (Design 1) */}
             <div className="tracker-card" style={{ alignItems: 'center' }}>
@@ -632,70 +1085,6 @@ export default function App() {
               </div>
             </div>
           </section>
-
-          {/* Featured Next Meal (Design 1) */}
-          <section aria-labelledby="featured-next-meal">
-            <h3 className="performance-subtitle" style={{ marginBottom: '0.75rem' }} id="featured-next-meal">Featured Showcase</h3>
-            <NextMealCard
-              mealsConfig={mealsConfig}
-              loggedMeals={loggedMeals}
-              onLogMeal={() => {
-                const hour = new Date().getHours();
-                let slot = 'breakfast';
-                if (hour >= 11 && hour < 16) slot = 'lunch';
-                else if (hour >= 16 && hour < 19) slot = 'snack';
-                else if (hour >= 19 || hour < 6) slot = 'dinner';
-                
-                if (loggedMeals.includes(slot)) {
-                  const slotsOrder = ['breakfast', 'lunch', 'snack', 'dinner'];
-                  const unlogged = slotsOrder.find(s => !loggedMeals.includes(s));
-                  if (unlogged) slot = unlogged;
-                }
-                handleLogMeal(slot);
-              }}
-              onViewDetails={() => {
-                const hour = new Date().getHours();
-                let slot = 'breakfast';
-                if (hour >= 11 && hour < 16) slot = 'lunch';
-                else if (hour >= 16 && hour < 19) slot = 'snack';
-                else if (hour >= 19 || hour < 6) slot = 'dinner';
-                
-                if (loggedMeals.includes(slot)) {
-                  const slotsOrder = ['breakfast', 'lunch', 'snack', 'dinner'];
-                  const unlogged = slotsOrder.find(s => !loggedMeals.includes(s));
-                  if (unlogged) slot = unlogged;
-                }
-                handleViewDetails(slot);
-              }}
-            />
-          </section>
-
-          {/* 4 Column Meal Plan menu list (Design 2) */}
-          <section aria-labelledby="daily-meal-plan-menu">
-            <div className="section-heading-row" id="daily-meal-plan-menu">
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '800' }}>Daily Meal Plan Menu</h2>
-            </div>
-            
-            <div className="menu-grid-4col">
-              {['breakfast', 'lunch', 'snack', 'dinner'].map((slot) => {
-                const config = mealsConfig.find((c) => c.slot === slot);
-                if (!config) return null;
-
-                return (
-                  <MealColumn
-                    key={slot}
-                    slot={slot}
-                    meal={config.meal}
-                    targetCalories={config.targetCalories}
-                    isLogged={loggedMeals.includes(slot)}
-                    onLog={() => handleLogMeal(slot)}
-                    onSwap={() => handleSwapMeal(slot)}
-                    onViewDetails={() => handleViewDetails(slot)}
-                  />
-                );
-              })}
-            </div>
-          </section>
         </main>
       )}
 
@@ -704,30 +1093,29 @@ export default function App() {
         <main className="step-container" style={{ margin: '1rem 0' }}>
           {isWorkoutActive ? (
             <ActiveWorkout
-              routine={WORKOUT_ROUTINES[workoutDayIndex]}
+              routine={weeklyWorkoutPlan[selectedDayIndex] || WORKOUT_ROUTINES[selectedDayIndex]}
               onFinishWorkout={handleFinishWorkout}
             />
           ) : (
             <RoutineBrowser
-              selectedDayIndex={workoutDayIndex}
-              onSelectDay={setWorkoutDayIndex}
+              weeklyWorkoutPlan={weeklyWorkoutPlan}
+              selectedDayIndex={selectedDayIndex}
+              onSelectDay={setSelectedDayIndex}
               onStartWorkout={() => setIsWorkoutActive(true)}
             />
           )}
         </main>
       )}
 
-      {/* SHOPPING LIST TAB */}
-      {activeTab === 'shopping' && (
-        <main className="step-container" style={{ margin: '2rem 0' }}>
-          <ShoppingList mealsConfig={mealsConfig} />
-        </main>
-      )}
-
       {/* RECIPES CATALOG TAB */}
       {activeTab === 'recipes' && (
         <main className="step-container" style={{ margin: '1rem 0' }}>
-          <RecipesCatalog onViewDetails={handleViewCatalogRecipeDetails} />
+          <RecipesCatalog 
+            onViewDetails={handleViewCatalogRecipeDetails} 
+            apiKey={secureApiKey}
+            provider={aiProvider}
+            model={openRouterModel}
+          />
         </main>
       )}
 
@@ -757,14 +1145,23 @@ export default function App() {
             const newCalories = loggedCalories + selectedCatalogRecipe.baseCalories;
             const newProtein = loggedProtein + selectedCatalogRecipe.macros.protein;
             const newLoggedMeals = [...loggedMeals, selectedCatalogRecipe.id];
-            setLoggedCalories(newCalories);
-            setLoggedProtein(newProtein);
-            setLoggedMeals(newLoggedMeals);
-            localStorage.setItem('fitora_merged_logged', JSON.stringify({
-              calories: newCalories,
-              protein: newProtein,
-              meals: newLoggedMeals
-            }));
+            
+            const customEntriesList = currentDayLog.customEntries || [];
+            const newEntry = { id: selectedCatalogRecipe.id, calories: selectedCatalogRecipe.baseCalories, protein: selectedCatalogRecipe.macros.protein };
+            const updatedCustomEntries = [...customEntriesList, newEntry];
+
+            const updatedLogs = {
+              ...loggedDays,
+              [selectedDayIndex]: {
+                ...currentDayLog,
+                calories: newCalories,
+                protein: newProtein,
+                customEntries: updatedCustomEntries,
+                meals: newLoggedMeals
+              }
+            };
+            setLoggedDays(updatedLogs);
+            localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
             showToast(`Logged ${selectedCatalogRecipe.name}! (+${selectedCatalogRecipe.baseCalories} kcal)`);
           } else {
             handleLogMeal(selectedMealSlot);
@@ -772,10 +1169,99 @@ export default function App() {
         }}
       />
 
+
+
+      {/* AI Generation Loading Overlay */}
+      {isGenerating && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(7, 8, 11, 0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            zIndex: 4000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+            textAlign: 'center'
+          }}
+        >
+          {/* Animated pulsing robot icon */}
+          <div 
+            style={{ 
+              marginBottom: '1.5rem', 
+              animation: 'pulse 1.5s infinite ease-in-out',
+              filter: 'drop-shadow(0 0 15px rgba(255, 125, 112, 0.6))',
+              color: 'var(--accent-coral)'
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="72" height="72" fill="currentColor"><path d="M19 8h-1.18c-.46-2.28-2.48-4-4.82-4-.83 0-1.62.24-2.3.66L9.66 3.62C9.44 3.4 9.11 3.4 8.89 3.62L7.48 5.03c-.22.22-.22.56 0 .78l1.35 1.35C8.34 8.01 8 9.07 8 10.22c0 2.34 1.72 4.36 4 4.82V17h-2c-1.1 0-2 .9-2 2v2h8v-2c0-1.1-.9-2-2-2h-2v-1.96c2.28-.46 4-2.48 4-4.82 0-1.15-.34-2.21-.83-3.05l1.35-1.35c.22-.22.22-.56 0-.78L19 8zM12 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"/></svg>
+          </div>
+          
+          <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-0.02em', marginBottom: '0.75rem', color: '#ffffff' }}>
+            Crafting Your Plan
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            Fitora AI Trainer is generating your personalized 7-day diet and workout plan. This will take about 10-15 seconds...
+          </p>
+
+          {/* Spinning loader */}
+          <div 
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              border: '4px solid rgba(255, 255, 255, 0.05)',
+              borderTopColor: 'var(--accent-coral)',
+              animation: 'spin 1s infinite linear'
+            }}
+          />
+
+          <style>{`
+            @keyframes pulse {
+              0% { transform: scale(1); opacity: 0.8; }
+              50% { transform: scale(1.15); opacity: 1; }
+              100% { transform: scale(1); opacity: 0.8; }
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes typing {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-4px); }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Chat Bot Coach */}
+      <ChatBot
+        profileContext={{
+          age,
+          weight,
+          height,
+          preference,
+          calorieTarget,
+          proteinTarget,
+          carbTarget,
+          fatTarget
+        }}
+        apiKey={secureApiKey}
+        provider={aiProvider}
+        model={openRouterModel}
+      />
+
       {/* Floating Toast Notification */}
       {toast && (
         <div className="toast-msg" id="toast-message">
-          <span>🔔</span> {toast}
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ marginRight: '6px' }}><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </span>
+          {toast}
         </div>
       )}
     </div>

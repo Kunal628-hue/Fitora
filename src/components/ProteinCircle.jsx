@@ -37,8 +37,8 @@ export default function ProteinCircle({ logged, target }) {
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.5s ease-out-in' }}
+            strokeLinecap="butt"
+            style={{ transition: 'stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
         </svg>
         <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
@@ -49,7 +49,14 @@ export default function ProteinCircle({ logged, target }) {
         </div>
       </div>
       <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-        {remaining > 0 ? `Target: ${remaining}g remaining` : 'Protein Goal Achieved! 🎉'}
+        {remaining > 0 ? (
+          `Target: ${remaining}g remaining`
+        ) : (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            Protein Goal Achieved!
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style={{ color: '#ffb74d' }}><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          </span>
+        )}
       </div>
     </div>
   );
