@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import MealColumn from './components/MealColumn';
-import ProteinCircle from './components/ProteinCircle';
 import DynamicChart from './components/DynamicChart';
 import RecipeModal from './components/RecipeModal';
 import RoutineBrowser from './components/RoutineBrowser';
@@ -11,26 +10,212 @@ import RecipesCatalog from './components/RecipesCatalog';
 import { calculateBMR, calculateTDEE } from './utils/nutrition';
 import { generateAiPlan, generateSingleMealAi, generateLocalFallbackPlan } from './utils/ai';
 import ChatBot from './components/ChatBot';
+import AuthPage from './components/AuthPage';
+import { supabase } from './utils/supabase';
+import { sendWelcomeEmail } from './utils/emailService';
 
 export default function App() {
+  // Auth state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // Custom Beautified Dialogs State
+  const [customDialog, setCustomDialog] = useState({
+    isOpen: false,
+    type: 'alert', // 'alert' | 'confirm' | 'prompt'
+    title: '',
+    message: '',
+    defaultValue: '',
+    resolve: null,
+  });
+  const [dialogInputVal, setDialogInputVal] = useState('');
+
+  // Fitness Notes State
+  const [dailyNotes, setDailyNotes] = useState([]);
+  const [noteInput, setNoteInput] = useState('');
+
+  const showCustomAlert = (message, title = 'Alert') => {
+    return new Promise((resolve) => {
+      setCustomDialog({
+        isOpen: true,
+        type: 'alert',
+        title,
+        message,
+        defaultValue: '',
+        resolve,
+      });
+    });
+  };
+
+  const showCustomConfirm = (message, title = 'Confirm Action') => {
+    return new Promise((resolve) => {
+      setCustomDialog({
+        isOpen: true,
+        type: 'confirm',
+        title,
+        message,
+        defaultValue: '',
+        resolve,
+      });
+    });
+  };
+
+  const showCustomPrompt = (message, defaultValue = '', title = 'Input Required') => {
+    setDialogInputVal(defaultValue);
+    return new Promise((resolve) => {
+      setCustomDialog({
+        isOpen: true,
+        type: 'prompt',
+        title,
+        message,
+        defaultValue,
+        resolve,
+      });
+    });
+  };
+
+  const handleDialogCancel = () => {
+    const { resolve } = customDialog;
+    setCustomDialog(prev => ({ ...prev, isOpen: false }));
+    if (resolve) {
+      if (customDialog.type === 'prompt') {
+        resolve(null);
+      } else {
+        resolve(false);
+      }
+    }
+  };
+
+  const handleDialogConfirm = () => {
+    const { resolve, type } = customDialog;
+    setCustomDialog(prev => ({ ...prev, isOpen: false }));
+    if (resolve) {
+      if (type === 'prompt') {
+        resolve(dialogInputVal);
+      } else {
+        resolve(true);
+      }
+    }
+  };
+
+  // Build user-scoped localStorage key so each user has isolated data
+  const userKey = (key) => {
+    const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
+    return `fitora_${uid}_${key}`;
+  };
+
+  // Check for persisted session on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('fitora_user');
+    if (stored) {
+      try { setCurrentUser(JSON.parse(stored)); } catch (_) {}
+    }
+    setAuthChecked(true);
+  }, []);
+
+  // Close user settings dropdown when clicking outside
+  useEffect(() => {
+    if (!showUserDropdown) return;
+    const closeDropdown = () => setShowUserDropdown(false);
+    document.addEventListener('click', closeDropdown);
+    return () => document.removeEventListener('click', closeDropdown);
+  }, [showUserDropdown]);
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem('fitora_user', JSON.stringify(user));
+    
+    // Check if welcome email has been sent for this email
+    const email = user?.email;
+    if (email) {
+      const welcomeKey = `fitora_welcome_sent_${email.trim().toLowerCase()}`;
+      const sent = localStorage.getItem(welcomeKey);
+      if (!sent) {
+        sendWelcomeEmail(email, user.user_metadata?.full_name || user.name || email.split('@')[0]);
+        localStorage.setItem(welcomeKey, 'true');
+      }
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setCurrentUser(null);
+    localStorage.removeItem('fitora_user');
+    // Reset all in-memory state so next user starts fresh
+    setAge('');
+    setWeight('');
+    setHeight('');
+    setSleep('');
+    setExtraPreferences('');
+    setPreference('veg');
+    setGoal('bulk');
+    setCalorieTarget(0);
+    setProteinTarget(0);
+    setCarbTarget(0);
+    setFatTarget(0);
+    setWeeklyDietPlan([]);
+    setWeeklyWorkoutPlan([]);
+    setLoggedDays({ 0:{calories:0,protein:0,meals:[]}, 1:{calories:0,protein:0,meals:[]}, 2:{calories:0,protein:0,meals:[]}, 3:{calories:0,protein:0,meals:[]}, 4:{calories:0,protein:0,meals:[]}, 5:{calories:0,protein:0,meals:[]}, 6:{calories:0,protein:0,meals:[]} });
+    setWorkoutStreak(0);
+    setCompletedDays([]);
+    setDailyNotes([]);
+    setIsLoaded(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = await showCustomConfirm("Are you sure you want to permanently delete your account? This action cannot be undone and will delete all your workout streaks and custom plans.", "Delete Account");
+    if (!confirmed) return;
+
+    const email = currentUser?.email;
+    const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
+
+    // Delete from mock users database
+    if (!supabase) {
+      const usersJson = localStorage.getItem('fitora_mock_users');
+      if (usersJson) {
+        try {
+          const users = JSON.parse(usersJson);
+          const updatedUsers = users.filter(u => u.email !== email?.trim().toLowerCase());
+          localStorage.setItem('fitora_mock_users', JSON.stringify(updatedUsers));
+        } catch {}
+      }
+    }
+
+    // Clean up all local storage data associated with this user
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(`fitora_${uid}_`)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.push(`fitora_welcome_sent_${email?.trim().toLowerCase()}`);
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+
+    // Sign out and reset in-memory state
+    await handleSignOut();
+    showToast("Account deleted successfully.");
+  };
+
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Input Panel Form State (Pre-filled with Design 2 values)
-  const [age, setAge] = useState('25');
-  const [weight, setWeight] = useState('75');
-  const [height, setHeight] = useState('5.9');
-  const [steps, setSteps] = useState('8000');
-  const [sleep, setSleep] = useState('7.5');
+  // Input Panel Form State — empty by default; populated from user-scoped localStorage on mount
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [steps, setSteps] = useState('');
+  const [sleep, setSleep] = useState('');
   const [preference, setPreference] = useState('veg'); // veg / non
-  const [goal, setGoal] = useState('bulk'); // cut / bulk (Design 2 goal toggles)
+  const [goal, setGoal] = useState('bulk'); // cut / bulk
   const [extraPreferences, setExtraPreferences] = useState('');
 
-  // Target values state
-  const [calorieTarget, setCalorieTarget] = useState(3019);
-  const [proteinTarget, setProteinTarget] = useState(302);
-  const [carbTarget, setCarbTarget] = useState(302);
-  const [fatTarget, setFatTarget] = useState(67);
+  // Target values state — zero until user fills in their profile
+  const [calorieTarget, setCalorieTarget] = useState(0);
+  const [proteinTarget, setProteinTarget] = useState(0);
+  const [carbTarget, setCarbTarget] = useState(0);
+  const [fatTarget, setFatTarget] = useState(0);
 
   // AI-generated 7-day plans
   const [weeklyDietPlan, setWeeklyDietPlan] = useState([]);
@@ -107,29 +292,31 @@ export default function App() {
   const loggedCalories = computedCalories;
   const loggedProtein = computedProtein;
 
-  // Initial calculation and generation on mount
-  // Initial calculation and generation on mount
+  // Load/reset data whenever the logged-in user changes
   useEffect(() => {
+    if (!authChecked || !currentUser) return;
+
     const d = new Date().getDay();
-    const todayIdx = d === 0 ? 6 : d - 1; // Map Sun(0)->6, Mon(1)->0 ... Sat(6)->5
+    const todayIdx = d === 0 ? 6 : d - 1;
     setSelectedDayIndex(todayIdx);
 
-    // Load saved data from localStorage
-    const savedProfile = localStorage.getItem('fitora_merged_profile');
-    const savedDietPlan = localStorage.getItem('fitora_diet_plan');
-    const savedWorkoutPlan = localStorage.getItem('fitora_workout_plan');
-    const savedLoggedDays = localStorage.getItem('fitora_logged_days');
-    const savedStreak = localStorage.getItem('fitora_workout_streak');
-    const savedCompleted = localStorage.getItem('fitora_workout_completed');
-    const savedProvider = localStorage.getItem('fitora_ai_provider');
-    const savedModel = localStorage.getItem('fitora_openrouter_model');
+    // User-scoped keys
+    const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
+    const prefix = `fitora_${uid}_`;
 
-    if (savedProvider) {
-      setAiProvider(savedProvider);
-    }
+    const savedProfile    = localStorage.getItem(`${prefix}merged_profile`);
+    const savedDietPlan   = localStorage.getItem(`${prefix}diet_plan`);
+    const savedWorkoutPlan= localStorage.getItem(`${prefix}workout_plan`);
+    const savedLoggedDays = localStorage.getItem(`${prefix}logged_days`);
+    const savedStreak     = localStorage.getItem(`${prefix}workout_streak`);
+    const savedCompleted  = localStorage.getItem(`${prefix}workout_completed`);
+    const savedProvider   = localStorage.getItem(`${prefix}ai_provider`);
+    const savedModel      = localStorage.getItem(`${prefix}openrouter_model`);
+
+    if (savedProvider) setAiProvider(savedProvider);
     if (savedModel) {
       if (savedModel === 'nvidia/llama-3.1-nemotron-70b-instruct') {
-        localStorage.setItem('fitora_openrouter_model', 'nvidia/llama-3.3-nemotron-super-49b-v1.5');
+        localStorage.setItem(`${prefix}openrouter_model`, 'nvidia/llama-3.3-nemotron-super-49b-v1.5');
         setOpenRouterModel('nvidia/llama-3.3-nemotron-super-49b-v1.5');
       } else {
         setOpenRouterModel(savedModel);
@@ -144,41 +331,41 @@ export default function App() {
         savedLoggedDays && savedLoggedDays !== 'undefined') {
       try {
         const profile = JSON.parse(savedProfile);
-        
+
         let loadedHeight = profile.height;
         if (loadedHeight && parseFloat(loadedHeight) > 15) {
           loadedHeight = (parseFloat(loadedHeight) / 30.48).toFixed(1);
           profile.height = loadedHeight;
-          localStorage.setItem('fitora_merged_profile', JSON.stringify(profile));
+          localStorage.setItem(`${prefix}merged_profile`, JSON.stringify(profile));
         }
 
-        setAge(profile.age || '25');
-        setWeight(profile.weight || '75');
-        setHeight(loadedHeight || '5.9');
-        setSteps(profile.steps || '8000');
-        setSleep(profile.sleep || '7.5');
+        setAge(profile.age || '');
+        setWeight(profile.weight || '');
+        setHeight(loadedHeight || '');
+        setSteps(profile.steps || '');
+        setSleep(profile.sleep || '');
         setPreference(profile.preference || 'veg');
         setExtraPreferences(profile.extraPreferences || '');
         setGoal(profile.goal || 'bulk');
 
-        setCalorieTarget(profile.calorieTarget || 3019);
-        setProteinTarget(profile.proteinTarget || 302);
-        setCarbTarget(profile.carbTarget || 302);
-        setFatTarget(profile.fatTarget || 67);
+        setCalorieTarget(profile.calorieTarget || 0);
+        setProteinTarget(profile.proteinTarget || 0);
+        setCarbTarget(profile.carbTarget || 0);
+        setFatTarget(profile.fatTarget || 0);
 
-        const parsedDiet = JSON.parse(savedDietPlan);
+        const parsedDiet    = JSON.parse(savedDietPlan);
         const parsedWorkout = JSON.parse(savedWorkoutPlan);
 
         const isDietPlanValid = Array.isArray(parsedDiet) && parsedDiet.length === 7 &&
-          parsedDiet.every(d => 
-            Array.isArray(d.meals) && 
-            d.meals.length === 4 && 
-            d.meals.every(m => 
-              m.meal && 
-              typeof m.meal === 'object' && 
-              Array.isArray(m.meal.ingredients) && 
-              m.meal.ingredients.length > 0 && 
-              typeof m.targetCalories === 'number' && 
+          parsedDiet.every(d =>
+            Array.isArray(d.meals) &&
+            d.meals.length === 4 &&
+            d.meals.every(m =>
+              m.meal &&
+              typeof m.meal === 'object' &&
+              Array.isArray(m.meal.ingredients) &&
+              m.meal.ingredients.length > 0 &&
+              typeof m.targetCalories === 'number' &&
               !isNaN(m.targetCalories)
             )
           );
@@ -192,42 +379,33 @@ export default function App() {
           parsedSuccessfully = true;
         }
       } catch (err) {
-        console.error("Error loading saved plan, falling back...", err);
+        console.error("Error loading saved plan:", err);
       }
     }
 
     if (!parsedSuccessfully) {
-      localStorage.removeItem('fitora_merged_profile');
-      localStorage.removeItem('fitora_diet_plan');
-      localStorage.removeItem('fitora_workout_plan');
-      localStorage.removeItem('fitora_logged_days');
-      
-      setAge('25');
-      setWeight('75');
-      setHeight('5.9');
-      setSteps('8000');
-      setSleep('7.5');
+      // New user — clear any stale data and leave everything empty
+      // so they are prompted to fill in their profile and click Generate My Plan
+      localStorage.removeItem(`${prefix}merged_profile`);
+      localStorage.removeItem(`${prefix}diet_plan`);
+      localStorage.removeItem(`${prefix}workout_plan`);
+      localStorage.removeItem(`${prefix}logged_days`);
+
+      setAge('');
+      setWeight('');
+      setHeight('');
+      setSteps('');
+      setSleep('');
       setPreference('veg');
       setExtraPreferences('');
       setGoal('bulk');
-
-      const bmr = calculateBMR(75, 5.9 * 30.48, 25, 'male');
-      const tdee = calculateTDEE(bmr, 'moderate');
-      const calories = Math.round(tdee + 300);
-      const p = Math.round((calories * 0.40) / 4);
-      const c = Math.round((calories * 0.40) / 4);
-      const f = Math.round((calories * 0.20) / 9);
-
-      setCalorieTarget(calories);
-      setProteinTarget(p);
-      setCarbTarget(c);
-      setFatTarget(f);
-
-      const plan = generateLocalFallbackPlan({ preference: 'veg', calorieTarget: calories });
-      setWeeklyDietPlan(plan.dietPlan);
-      setWeeklyWorkoutPlan(plan.workoutPlan);
-
-      let initialLogs = {
+      setCalorieTarget(0);
+      setProteinTarget(0);
+      setCarbTarget(0);
+      setFatTarget(0);
+      setWeeklyDietPlan([]);
+      setWeeklyWorkoutPlan([]);
+      setLoggedDays({
         0: { calories: 0, protein: 0, meals: [] },
         1: { calories: 0, protein: 0, meals: [] },
         2: { calories: 0, protein: 0, meals: [] },
@@ -235,44 +413,27 @@ export default function App() {
         4: { calories: 0, protein: 0, meals: [] },
         5: { calories: 0, protein: 0, meals: [] },
         6: { calories: 0, protein: 0, meals: [] },
-      };
-
-      const todayMeals = plan.dietPlan[todayIdx]?.meals || [];
-      let todayCal = 0;
-      let todayProt = 0;
-      const loggedSlots = ['lunch', 'snack'];
-      
-      loggedSlots.forEach(slot => {
-        const config = todayMeals.find(m => m.slot === slot);
-        if (config) {
-          todayCal += Math.round(config.targetCalories);
-          const scaleFactor = config.targetCalories / config.meal.baseCalories;
-          todayProt += Math.round(config.meal.macros.protein * scaleFactor);
-        }
       });
-
-      initialLogs[todayIdx] = {
-        calories: todayCal,
-        protein: todayProt,
-        meals: loggedSlots
-      };
-
-      setLoggedDays(initialLogs);
-      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
     }
 
     if (savedStreak) setWorkoutStreak(parseInt(savedStreak, 10) || 0);
     if (savedCompleted && savedCompleted !== 'undefined') {
-      try {
-        setCompletedDays(JSON.parse(savedCompleted));
-      } catch (e) {
-        console.error("Error loading completed workouts:", e);
-      }
+      try { setCompletedDays(JSON.parse(savedCompleted)); }
+      catch (e) { console.error("Error loading completed workouts:", e); }
     }
-    
+
+    const savedNotes = localStorage.getItem(`${prefix}daily_notes`);
+    if (savedNotes) {
+      try { setDailyNotes(JSON.parse(savedNotes)); }
+      catch (e) { setDailyNotes([]); }
+    } else {
+      setDailyNotes([]);
+    }
+
     setIsLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authChecked, currentUser]);
+
 
   const showToast = (message) => {
     setToast(message);
@@ -343,9 +504,9 @@ export default function App() {
       carbTarget: c,
       fatTarget: f,
     };
-    localStorage.setItem('fitora_merged_profile', JSON.stringify(profile));
-    localStorage.setItem('fitora_diet_plan', JSON.stringify(plan.dietPlan));
-    localStorage.setItem('fitora_workout_plan', JSON.stringify(plan.workoutPlan));
+    localStorage.setItem(userKey('merged_profile'), JSON.stringify(profile));
+    localStorage.setItem(userKey('diet_plan'), JSON.stringify(plan.dietPlan));
+    localStorage.setItem(userKey('workout_plan'), JSON.stringify(plan.workoutPlan));
 
   }, [age, weight, height, steps, sleep, preference, goal, extraPreferences, isLoaded]);
 
@@ -447,8 +608,8 @@ export default function App() {
     if (isDietValid && isWorkoutValid) {
       setWeeklyDietPlan(finalDietPlan);
       setWeeklyWorkoutPlan(finalWorkoutPlan);
-      localStorage.setItem('fitora_diet_plan', JSON.stringify(finalDietPlan));
-      localStorage.setItem('fitora_workout_plan', JSON.stringify(finalWorkoutPlan));
+      localStorage.setItem(userKey('diet_plan'), JSON.stringify(finalDietPlan));
+      localStorage.setItem(userKey('workout_plan'), JSON.stringify(finalWorkoutPlan));
 
       // Reset daily log states for the new plan
       let initialLogs = {
@@ -461,7 +622,7 @@ export default function App() {
         6: { calories: 0, protein: 0, meals: [] },
       };
       setLoggedDays(initialLogs);
-      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
+      localStorage.setItem(userKey('logged_days'), JSON.stringify(initialLogs));
 
       showToast('Personalized AI plan generated!');
     } else {
@@ -472,8 +633,8 @@ export default function App() {
       });
       setWeeklyDietPlan(fallback.dietPlan);
       setWeeklyWorkoutPlan(fallback.workoutPlan);
-      localStorage.setItem('fitora_diet_plan', JSON.stringify(fallback.dietPlan));
-      localStorage.setItem('fitora_workout_plan', JSON.stringify(fallback.workoutPlan));
+      localStorage.setItem(userKey('diet_plan'), JSON.stringify(fallback.dietPlan));
+      localStorage.setItem(userKey('workout_plan'), JSON.stringify(fallback.workoutPlan));
 
       let initialLogs = {
         0: { calories: 0, protein: 0, meals: [] },
@@ -485,7 +646,7 @@ export default function App() {
         6: { calories: 0, protein: 0, meals: [] },
       };
       setLoggedDays(initialLogs);
-      localStorage.setItem('fitora_logged_days', JSON.stringify(initialLogs));
+      localStorage.setItem(userKey('logged_days'), JSON.stringify(initialLogs));
     }
     setIsGenerating(false);
   };
@@ -563,7 +724,7 @@ export default function App() {
     });
 
     setWeeklyDietPlan(updatedPlan);
-    localStorage.setItem('fitora_diet_plan', JSON.stringify(updatedPlan));
+    localStorage.setItem(userKey('diet_plan'), JSON.stringify(updatedPlan));
 
     const wasLogged = loggedMeals.includes(slotKey);
     let newLoggedMeals = [...loggedMeals];
@@ -599,7 +760,7 @@ export default function App() {
         }
       };
       setLoggedDays(updatedLogs);
-      localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
+      localStorage.setItem(userKey('logged_days'), JSON.stringify(updatedLogs));
     }
 
     showToast(`Swapped to ${newMeal.name}`);
@@ -646,7 +807,7 @@ export default function App() {
     };
 
     setLoggedDays(updatedLogs);
-    localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
+    localStorage.setItem(userKey('logged_days'), JSON.stringify(updatedLogs));
 
     showToast(`Logged ${config.meal.name}! (+${mealCalories} kcal)`);
   };
@@ -663,22 +824,22 @@ export default function App() {
     setModalOpen(true);
   };
 
-  const handleAddCustomEntry = () => {
-    const customKcalStr = prompt('Enter custom calories to log (kcal):', '200');
+  const _handleAddCustomEntry = async () => {
+    const customKcalStr = await showCustomPrompt('Enter custom calories to log (kcal):', '200', 'Log Calories');
     if (customKcalStr === null) return;
     
     const kcal = parseInt(customKcalStr, 10);
     if (isNaN(kcal) || kcal <= 0) {
-      alert('Please enter a valid positive number.');
+      await showCustomAlert('Please enter a valid positive number.', 'Invalid Calories');
       return;
     }
 
-    const customProteinStr = prompt('Enter protein amount for this entry (grams):', '15');
+    const customProteinStr = await showCustomPrompt('Enter protein amount for this entry (grams):', '15', 'Log Protein');
     if (customProteinStr === null) return;
     
     const protein = parseInt(customProteinStr, 10);
     if (isNaN(protein) || protein < 0) {
-      alert('Please enter a valid number.');
+      await showCustomAlert('Please enter a valid number.', 'Invalid Protein');
       return;
     }
 
@@ -715,9 +876,36 @@ export default function App() {
     };
 
     setLoggedDays(updatedLogs);
-    localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
+    localStorage.setItem(userKey('logged_days'), JSON.stringify(updatedLogs));
 
     showToast(`Added custom entry: +${kcal} kcal, +${protein}g Protein`);
+  };
+
+  const handleAddExercise = (dayIdx, ex) => {
+    const currentRoutines = weeklyWorkoutPlan && weeklyWorkoutPlan.length > 0 ? weeklyWorkoutPlan : WORKOUT_ROUTINES;
+    const updatedPlan = JSON.parse(JSON.stringify(currentRoutines));
+    if (!updatedPlan[dayIdx]) return;
+    updatedPlan[dayIdx].exercises.push(ex);
+    setWeeklyWorkoutPlan(updatedPlan);
+    localStorage.setItem(userKey('workout_plan'), JSON.stringify(updatedPlan));
+  };
+
+  const handleEditExercise = (dayIdx, exIdx, updatedEx) => {
+    const currentRoutines = weeklyWorkoutPlan && weeklyWorkoutPlan.length > 0 ? weeklyWorkoutPlan : WORKOUT_ROUTINES;
+    const updatedPlan = JSON.parse(JSON.stringify(currentRoutines));
+    if (!updatedPlan[dayIdx] || !updatedPlan[dayIdx].exercises[exIdx]) return;
+    updatedPlan[dayIdx].exercises[exIdx] = updatedEx;
+    setWeeklyWorkoutPlan(updatedPlan);
+    localStorage.setItem(userKey('workout_plan'), JSON.stringify(updatedPlan));
+  };
+
+  const handleDeleteExercise = (dayIdx, exIdx) => {
+    const currentRoutines = weeklyWorkoutPlan && weeklyWorkoutPlan.length > 0 ? weeklyWorkoutPlan : WORKOUT_ROUTINES;
+    const updatedPlan = JSON.parse(JSON.stringify(currentRoutines));
+    if (!updatedPlan[dayIdx]) return;
+    updatedPlan[dayIdx].exercises = updatedPlan[dayIdx].exercises.filter((_, idx) => idx !== exIdx);
+    setWeeklyWorkoutPlan(updatedPlan);
+    localStorage.setItem(userKey('workout_plan'), JSON.stringify(updatedPlan));
   };
 
   // Workout Session Completed handler
@@ -738,8 +926,8 @@ export default function App() {
     setWorkoutStreak(newStreak);
     setCompletedDays(updatedCompleted);
 
-    localStorage.setItem('fitora_workout_streak', newStreak.toString());
-    localStorage.setItem('fitora_workout_completed', JSON.stringify(updatedCompleted));
+    localStorage.setItem(userKey('workout_streak'), newStreak.toString());
+    localStorage.setItem(userKey('workout_completed'), JSON.stringify(updatedCompleted));
 
     setIsWorkoutActive(false);
     showToast(`Workout Finished! Streak: ${newStreak} days! 🔥`);
@@ -750,6 +938,14 @@ export default function App() {
   // Computed values
   const calPercent = Math.min(100, Math.round((loggedCalories / calorieTarget) * 100)) || 0;
   const calRemaining = Math.max(0, calorieTarget - loggedCalories);
+
+  // Show nothing until we've checked localStorage for a stored session
+  if (!authChecked) return null;
+
+  // Show auth page if not logged in
+  if (!currentUser) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
 
   return (
     <div className="app-container">
@@ -785,16 +981,152 @@ export default function App() {
             Recipes
           </button>
         </nav>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--text-secondary)' }}>
           {workoutStreak > 0 && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(255, 125, 112, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12.5c-1.38 0-2.5-1.12-2.5-2.5 0-1.89 1.5-3.5 3.5-5.5 2 2 3.5 3.61 3.5 5.5 0 1.38-1.12 2.5-2.5 2.5zM17.66 11.2c-.22-2.15-1.74-4.88-5.66-8.2-3.92 3.32-5.44 6.05-5.66 8.2-1 .92-1.63 2.24-1.63 3.7A5.25 5.25 0 0 0 10.3 20.3a5.25 5.25 0 0 0 7.4 0 5.25 5.25 0 0 0 1.63-3.7c0-1.46-.63-2.78-1.67-3.7z"/></svg>
               {workoutStreak} Day Streak
             </span>
           )}
-          <span style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }} onClick={() => alert('Logged in as Kunal')}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          </span>
+          {/* User info dropdown menu wrapper */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowUserDropdown(!showUserDropdown);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                padding: '0.35rem 0.75rem',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'background 0.2s, border-color 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+            >
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #ff4d4d 0%, var(--accent-red) 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.78rem', fontWeight: 700, color: '#ffffff',
+                flexShrink: 0,
+                boxShadow: '0 0 8px rgba(230, 0, 0, 0.25)',
+              }}>
+                {(currentUser?.name || currentUser?.email || currentUser?.user_metadata?.full_name || 'U')[0].toUpperCase()}
+              </div>
+              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'rgba(255,255,255,0.95)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {currentUser?.name || currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User'}
+              </span>
+              <svg 
+                width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.6)" strokeWidth="2.5"
+                style={{ 
+                  transform: showUserDropdown ? 'rotate(180deg)' : 'none', 
+                  transition: 'transform 0.2s',
+                  marginLeft: '0.1rem',
+                }}
+              >
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            {showUserDropdown && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: 'rgba(12, 12, 16, 0.98)',
+                  border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '0.4rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.25rem',
+                  minWidth: 160,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(230,0,0,0.05)',
+                  zIndex: 100,
+                  animation: 'welcomeCardSlideUp 0.15s ease-out',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Sign Out */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    handleSignOut();
+                  }}
+                  style={{
+                    background: 'none', border: 'none',
+                    borderRadius: '8px', padding: '0.45rem 0.65rem', cursor: 'pointer',
+                    color: 'var(--text-secondary)', display: 'flex', alignItems: 'center',
+                    fontSize: '0.78rem', gap: '0.45rem', width: '100%', textAlign: 'left',
+                    transition: 'background 0.2s, color 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'none';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                    <polyline points="16,17 21,12 16,7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Sign Out
+                </button>
+
+                {/* Divider */}
+                <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.06)', margin: '0.2rem 0.4rem' }} />
+
+                {/* Delete Account */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    handleDeleteAccount();
+                  }}
+                  style={{
+                    background: 'none', border: 'none',
+                    borderRadius: '8px', padding: '0.45rem 0.65rem', cursor: 'pointer',
+                    color: 'var(--accent-red)', display: 'flex', alignItems: 'center',
+                    fontSize: '0.78rem', gap: '0.45rem', width: '100%', textAlign: 'left',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(230,0,0,0.15)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'none';
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Delete Account
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -933,14 +1265,7 @@ export default function App() {
           </section>
 
           {/* Weekday Selector Row */}
-          <div 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(7, 1fr)', 
-              gap: '1rem', 
-              marginBottom: '2.5rem' 
-            }}
-          >
+          <div className="weekday-grid">
             {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((dayName, idx) => {
               const isActive = selectedDayIndex === idx;
               const dayNumber = `0${idx + 1}`;
@@ -949,41 +1274,12 @@ export default function App() {
                   key={idx}
                   type="button"
                   onClick={() => setSelectedDayIndex(idx)}
-                  style={{
-                    background: '#11131a',
-                    border: '1px solid var(--glass-border)',
-                    borderRadius: '6px',
-                    padding: '1.25rem 0.5rem',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.25rem',
-                    transition: 'all var(--transition-normal)',
-                    position: 'relative',
-                    outline: 'none'
-                  }}
+                  className={`weekday-btn ${isActive ? 'active' : ''}`}
                   id={`db-day-select-${idx}`}
                 >
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                    {dayName}
-                  </span>
-                  <span style={{ fontSize: '1.6rem', fontWeight: '900', color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                    {dayNumber}
-                  </span>
-                  {/* Highlight red underline */}
-                  {isActive && (
-                    <div 
-                      style={{ 
-                        position: 'absolute', 
-                        bottom: 0, 
-                        left: 0, 
-                        right: 0, 
-                        height: '3px', 
-                        background: 'var(--accent-red)' 
-                      }} 
-                    />
-                  )}
+                  <span className="weekday-name">{dayName}</span>
+                  <span className="weekday-num">{dayNumber}</span>
+                  {isActive && <div className="weekday-indicator" />}
                 </button>
               );
             })}
@@ -1048,26 +1344,175 @@ export default function App() {
               <span className="performance-subtitle">Daily Summary</span>
               <h1 className="performance-main-title">Performance</h1>
             </div>
-            <button 
-              type="button" 
-              className="btn btn-primary" 
-              onClick={handleAddCustomEntry}
-              id="add-entry-btn"
-            >
-              Add Entry
-            </button>
           </section>
 
           {/* Trackers Row (Design 1 & 2 layout merge) */}
           <section className="trackers-row-grid" aria-label="Progress Trackers Dashboard">
 
 
-            {/* Card 2: Protein Goal Circle (Design 1) */}
-            <div className="tracker-card" style={{ alignItems: 'center' }}>
-              <h3 style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', alignSelf: 'flex-start', marginBottom: '0.5rem' }}>
-                Protein Goal
+            {/* Card 2: Fitness Note Taker */}
+            <div className="tracker-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', minHeight: '340px' }}>
+              <h3 style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
+                Fitness Notes
               </h3>
-              <ProteinCircle logged={loggedProtein} target={proteinTarget} />
+              
+              {/* Form to Add Note */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!noteInput.trim()) return;
+                  const newNote = {
+                    id: Date.now().toString(),
+                    text: noteInput.trim(),
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })
+                  };
+                  const updatedNotes = [newNote, ...dailyNotes];
+                  setDailyNotes(updatedNotes);
+                  localStorage.setItem(userKey('daily_notes'), JSON.stringify(updatedNotes));
+                  setNoteInput('');
+                }}
+                style={{ display: 'flex', gap: '0.5rem', width: '100%' }}
+              >
+                <input
+                  type="text"
+                  placeholder="Record today's training thoughts..."
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '8px',
+                    padding: '0.45rem 0.75rem',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent-red)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: 'var(--accent-red)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '0 0.85rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#ff1a1a'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-red)'}
+                >
+                  Add
+                </button>
+              </form>
+
+              {/* Scrollable list of notes */}
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.6rem',
+                paddingRight: '0.2rem',
+                maxHeight: '240px',
+              }}>
+                {dailyNotes.length === 0 ? (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.78rem',
+                    textAlign: 'center',
+                    padding: '2rem 1rem',
+                    gap: '0.5rem',
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.4 }}>
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>No fitness notes logged today.<br/>Log weight, workouts, or mood!</span>
+                  </div>
+                ) : (
+                  dailyNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        borderRadius: '8px',
+                        padding: '0.55rem 0.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem',
+                        position: 'relative',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
+                    >
+                      {/* Timestamp */}
+                      <span style={{ fontSize: '0.65rem', color: 'var(--accent-coral)', fontWeight: 700 }}>
+                        {note.timestamp}
+                      </span>
+                      
+                      {/* Note Content */}
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.4', wordBreak: 'break-word', paddingRight: '1.2rem' }}>
+                        {note.text}
+                      </span>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = dailyNotes.filter(n => n.id !== note.id);
+                          setDailyNotes(updated);
+                          localStorage.setItem(userKey('daily_notes'), JSON.stringify(updated));
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '0.45rem',
+                          right: '0.45rem',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          padding: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '4px',
+                          transition: 'color 0.2s, background 0.2s',
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.color = 'var(--accent-red)';
+                          e.currentTarget.style.background = 'rgba(230,0,0,0.1)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.color = 'var(--text-muted)';
+                          e.currentTarget.style.background = 'none';
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Card 3: Macro Ratio Donut (Design 2) */}
@@ -1101,7 +1546,10 @@ export default function App() {
               weeklyWorkoutPlan={weeklyWorkoutPlan}
               selectedDayIndex={selectedDayIndex}
               onSelectDay={setSelectedDayIndex}
-              onStartWorkout={() => setIsWorkoutActive(true)}
+              onAddExercise={handleAddExercise}
+              onEditExercise={handleEditExercise}
+              onDeleteExercise={handleDeleteExercise}
+              showConfirm={showCustomConfirm}
             />
           )}
         </main>
@@ -1124,9 +1572,9 @@ export default function App() {
         <span style={{ fontWeight: '800' }}>Fitora</span>
         <span>© 2024 Fitora Performance. All Rights Reserved.</span>
         <div className="footer-links">
-          <button type="button" className="footer-link-btn" onClick={() => alert('Privacy policy is standard client-side compliance.')}>Privacy Policy</button>
-          <button type="button" className="footer-link-btn" onClick={() => alert('Terms of service apply.')}>Terms</button>
-          <button type="button" className="footer-link-btn" onClick={() => alert('Contact us at support@fitora.com')}>Contact</button>
+          <button type="button" className="footer-link-btn" onClick={() => showCustomAlert('Privacy policy is standard client-side compliance.', 'Privacy Policy')}>Privacy Policy</button>
+          <button type="button" className="footer-link-btn" onClick={() => showCustomAlert('Terms of service apply.', 'Terms of Service')}>Terms</button>
+          <button type="button" className="footer-link-btn" onClick={() => showCustomAlert('Contact us at support@fitora.com', 'Contact Us')}>Contact</button>
         </div>
       </footer>
 
@@ -1161,7 +1609,7 @@ export default function App() {
               }
             };
             setLoggedDays(updatedLogs);
-            localStorage.setItem('fitora_logged_days', JSON.stringify(updatedLogs));
+            localStorage.setItem(userKey('logged_days'), JSON.stringify(updatedLogs));
             showToast(`Logged ${selectedCatalogRecipe.name}! (+${selectedCatalogRecipe.baseCalories} kcal)`);
           } else {
             handleLogMeal(selectedMealSlot);
@@ -1253,6 +1701,7 @@ export default function App() {
         apiKey={secureApiKey}
         provider={aiProvider}
         model={openRouterModel}
+        showConfirm={showCustomConfirm}
       />
 
       {/* Floating Toast Notification */}
@@ -1264,6 +1713,215 @@ export default function App() {
           {toast}
         </div>
       )}
+
+      {/* Custom Beautified Dialog Modal */}
+      {customDialog.isOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(5, 5, 8, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1.5rem',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          <div style={{
+            background: '#0c0d12',
+            border: '2px solid var(--accent-red)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(230, 0, 0, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            animation: 'welcomeCardSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem 0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1.1rem',
+                fontWeight: 800,
+                color: '#ffffff',
+                letterSpacing: '0.5px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}>
+                {customDialog.type === 'confirm' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-coral)" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                )}
+                {customDialog.type === 'prompt' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-coral)" strokeWidth="2.5">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                )}
+                {customDialog.type === 'alert' && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" strokeWidth="2.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                )}
+                {customDialog.title}
+              </h3>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p style={{
+                margin: 0,
+                fontSize: '0.92rem',
+                lineHeight: '1.5',
+                color: 'var(--text-secondary)',
+              }}>
+                {customDialog.message}
+              </p>
+
+              {customDialog.type === 'prompt' && (
+                <input
+                  type="text"
+                  value={dialogInputVal}
+                  onChange={(e) => setDialogInputVal(e.target.value)}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleDialogConfirm();
+                    if (e.key === 'Escape') handleDialogCancel();
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    padding: '0.65rem 0.85rem',
+                    color: '#ffffff',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent-red)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+                />
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '0.75rem 1.5rem 1.25rem',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem',
+            }}>
+              {customDialog.type !== 'alert' && (
+                <button
+                  type="button"
+                  onClick={handleDialogCancel}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '8px',
+                    padding: '0.55rem 1.2rem',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, color 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleDialogConfirm}
+                style={{
+                  background: 'var(--accent-red)',
+                  border: 'none',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  padding: '0.55rem 1.2rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(230, 0, 0, 0.2)',
+                  transition: 'background 0.2s, transform 0.1s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#ff1a1a';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'var(--accent-red)';
+                }}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {customDialog.type === 'alert' ? 'OK' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-nav-bar" aria-label="Mobile Navigation">
+        <button 
+          type="button" 
+          className={`mobile-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <rect x="3" y="3" width="7" height="9" rx="1"/>
+            <rect x="14" y="3" width="7" height="5" rx="1"/>
+            <rect x="14" y="12" width="7" height="9" rx="1"/>
+            <rect x="3" y="16" width="7" height="5" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+        <button 
+          type="button" 
+          className={`mobile-nav-item ${activeTab === 'workout' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('workout');
+            setIsWorkoutActive(false); // Default to calendar browser view
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6.5 6.5 11 11M3 21l3-3m15-15-3 3M17 3l4 4M3 17l4 4"/>
+          </svg>
+          <span>Workout</span>
+        </button>
+        <button 
+          type="button" 
+          className={`mobile-nav-item ${activeTab === 'recipes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('recipes')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5V4.5z"/>
+          </svg>
+          <span>Recipes</span>
+        </button>
+      </nav>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { askChatBotAi } from '../utils/ai';
 
-export default function ChatBot({ profileContext, apiKey, provider, model }) {
+export default function ChatBot({ profileContext, apiKey, provider, model, showConfirm }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -35,8 +35,12 @@ export default function ChatBot({ profileContext, apiKey, provider, model }) {
     }
   }, [messages, isOpen]);
 
-  const handleClear = () => {
-    if (window.confirm('Are you sure you want to clear your chat history?')) {
+  const handleClear = async () => {
+    const confirmed = showConfirm 
+      ? await showConfirm('Are you sure you want to clear your chat history?', 'Clear Chat History')
+      : window.confirm('Are you sure you want to clear your chat history?');
+
+    if (confirmed) {
       setMessages([
         {
           role: 'assistant',
