@@ -1669,7 +1669,33 @@ export default function App() {
       {/* WORKOUT TAB */}
       {activeTab === 'workout' && (
         <main className="step-container" style={{ margin: '1rem 0' }}>
-          {isWorkoutActive ? (
+          {weeklyWorkoutPlan.length === 0 ? (
+            <div 
+              className="glass-panel" 
+              style={{ 
+                padding: '2.5rem', 
+                textAlign: 'center', 
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.75rem',
+                border: '1px dashed rgba(255, 255, 255, 0.15)',
+                borderRadius: '12px',
+                background: 'rgba(20, 22, 30, 0.5)'
+              }}
+            >
+               <span style={{ display: 'flex', alignItems: 'center' }}>
+                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5, marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>
+                   <path d="m6.5 6.5 11 11M3 21l3-3m15-15-3 3M17 3l4 4M3 17l4 4"/>
+                 </svg>
+              </span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>No Workout Plan Generated</h3>
+              <p style={{ maxWidth: '400px', fontSize: '0.85rem', lineHeight: '1.5', margin: '0' }}>
+                Please enter your profile details on the <strong>Dashboard</strong> tab and click <strong>"Generate My Plan"</strong> to build your custom workout routines.
+              </p>
+            </div>
+          ) : isWorkoutActive ? (
             <ActiveWorkout
               routine={weeklyWorkoutPlan[selectedDayIndex] || WORKOUT_ROUTINES[selectedDayIndex]}
               onFinishWorkout={handleFinishWorkout}
