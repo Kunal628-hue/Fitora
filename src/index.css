@@ -568,19 +568,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 .auth-orb-1 {
   width: 450px; height: 450px;
-  background: radial-gradient(circle, rgba(230,0,0,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(200,255,0,0.07) 0%, transparent 70%);
   top: -120px; left: -120px;
   animation-delay: 0s;
 }
 .auth-orb-2 {
   width: 320px; height: 320px;
-  background: radial-gradient(circle, rgba(180,0,0,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(168,230,0,0.05) 0%, transparent 70%);
   bottom: -80px; right: -80px;
   animation-delay: -4s;
 }
 .auth-orb-3 {
   width: 220px; height: 220px;
-  background: radial-gradient(circle, rgba(230,0,0,0.04) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(200,255,0,0.04) 0%, transparent 70%);
   top: 50%; left: 65%;
   animation-delay: -8s;
 }
@@ -595,13 +595,13 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: 560px;
   background: rgba(12, 12, 16, 0.95);
-  border: 2px solid var(--accent-red);
+  border: 2px solid rgba(200, 255, 0, 0.55);
   border-radius: 24px;
   padding: 2rem 2.5rem;
   box-shadow:
-    0 0 15px rgba(230,0,0,0.25),
+    0 0 20px rgba(200,255,0,0.20),
     0 24px 70px rgba(0,0,0,0.7),
-    0 0 50px rgba(230,0,0,0.04);
+    0 0 60px rgba(200,255,0,0.05);
   backdrop-filter: blur(20px);
   animation: authCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
@@ -630,16 +630,16 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.2s, border-color 0.2s;
 }
 .auth-back-btn:hover {
-  background: rgba(230,0,0,0.15);
-  border-color: rgba(230,0,0,0.4);
+  background: rgba(200,255,0,0.12);
+  border-color: rgba(200,255,0,0.4);
 }
 
 .auth-quote {
   display: flex;
   gap: 0.7rem;
   align-items: flex-start;
-  background: rgba(230,0,0,0.04);
-  border: 1px solid rgba(230,0,0,0.12);
+  background: rgba(200,255,0,0.04);
+  border: 1px solid rgba(200,255,0,0.15);
   border-radius: 12px;
   padding: 0.7rem 0.9rem;
   margin: 0.9rem 0;
@@ -648,7 +648,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 3px;
   min-height: 32px;
   border-radius: 4px;
-  background: linear-gradient(180deg, #e60000, #a00000);
+  background: linear-gradient(180deg, #C8FF00, #6bcc00);
   flex-shrink: 0;
 }
 .auth-quote-text {
@@ -660,7 +660,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .auth-quote-author {
   font-size: 0.7rem;
-  color: rgba(230,0,0,0.8);
+  color: rgba(200,255,0,0.85);
   font-weight: 600;
   letter-spacing: 0.03em;
 }
@@ -709,16 +709,16 @@ h1, h2, h3, h4, h5, h6 {
 .auth-primary-btn {
   width: 100%;
   padding: 0.9rem;
-  background: linear-gradient(135deg, #e60000 0%, #c00000 60%, #900000 100%);
+  background: linear-gradient(135deg, #C8FF00 0%, #a8e600 60%, #6bcc00 100%);
   border: none;
   border-radius: 12px;
-  color: #ffffff;
+  color: #000000;
   font-family: 'Outfit', sans-serif;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(230,0,0,0.35);
+  box-shadow: 0 4px 20px rgba(200,255,0,0.40);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -727,13 +727,13 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0.25rem;
 }
 .auth-primary-btn:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: 0.92;
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(230,0,0,0.45);
+  box-shadow: 0 8px 28px rgba(200,255,0,0.55);
 }
 .auth-primary-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(230,0,0,0.25);
+  box-shadow: 0 2px 10px rgba(200,255,0,0.30);
 }
 .auth-primary-btn:disabled {
   opacity: 0.55;
@@ -742,8 +742,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .auth-spinner {
   width: 18px; height: 18px;
-  border: 2.5px solid rgba(255,255,255,0.25);
-  border-top-color: #fff;
+  border: 2.5px solid rgba(0,0,0,0.25);
+  border-top-color: #000;
   border-radius: 50%;
   animation: authSpin 0.7s linear infinite;
   display: inline-block;
@@ -828,8 +828,8 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
 }
 .auth-checkbox.checked {
-  border-color: #e60000;
-  background: #e60000;
+  border-color: #C8FF00;
+  background: #C8FF00;
 }
 
 .auth-app-desc {

@@ -401,9 +401,9 @@ function SignupScreen({ onSwitch, onLogin }) {
 
   const passwordStrength = () => {
     if (!password) return null;
-    if (password.length < 6) return { level: 1, label: 'Weak', color: '#e60000' };
+    if (password.length < 6) return { level: 1, label: 'Weak', color: '#ff4d4d' };
     if (password.length < 10) return { level: 2, label: 'Fair', color: '#f59e0b' };
-    if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) return { level: 4, label: 'Strong', color: '#e60000' };
+    if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) return { level: 4, label: 'Strong', color: '#C8FF00' };
     return { level: 3, label: 'Good', color: '#22c55e' };
   };
   const strength = passwordStrength();
@@ -435,7 +435,7 @@ function SignupScreen({ onSwitch, onLogin }) {
 
         {success ? (
           <div className="auth-success">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e60000" strokeWidth="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C8FF00" strokeWidth="2">
               <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
               <polyline points="22,4 12,14.01 9,11.01"/>
             </svg>
@@ -502,7 +502,7 @@ function SignupScreen({ onSwitch, onLogin }) {
                 </div>
                 <span>
                   I agree to the{' '}
-                  <span style={{ color: '#e60000', cursor: 'pointer', textDecoration: 'underline' }}>Terms &amp; Conditions</span>
+                  <span style={{ color: '#C8FF00', cursor: 'pointer', textDecoration: 'underline' }}>Terms &amp; Conditions</span>
                 </span>
               </label>
 
