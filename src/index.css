@@ -1196,3 +1196,42 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Chatbot container & responsiveness */
+.chatbot-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 10000;
+}
+
+@media (max-width: 768px) {
+  .chatbot-container {
+    bottom: 84px; /* Place above the 68px mobile nav bar */
+    right: 1.25rem;
+  }
+}
+
+.chatbot-window {
+  position: absolute;
+  bottom: 72px;
+  right: 0;
+  width: 360px;
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(20, 22, 30, 0.98);
+  border-radius: 12px;
+}
+
+@media (max-width: 480px) {
+  .chatbot-window {
+    width: calc(100vw - 2.5rem);
+    height: 420px;
+    right: 0px;
+  }
+}
+
+

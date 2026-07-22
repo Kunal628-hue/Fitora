@@ -123,14 +123,33 @@ export default function RecipeModal({ isOpen, onClose, meal, targetCalories, isL
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
           <button 
             type="button" 
             className="btn btn-secondary" 
-            style={{ width: '100%' }} 
+            style={{ flex: 1, minHeight: '44px' }} 
             onClick={onClose}
           >
             Close
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={isLogged}
+            style={{ 
+              flex: 1, 
+              minHeight: '44px',
+              background: isLogged ? 'rgba(255, 255, 255, 0.1)' : 'var(--accent-red)',
+              color: isLogged ? 'var(--text-muted)' : '#ffffff',
+              border: 'none',
+              cursor: isLogged ? 'not-allowed' : 'pointer'
+            }}
+            onClick={() => {
+              onLog();
+              onClose();
+            }}
+          >
+            {isLogged ? 'LOGGED ✓' : 'LOG MEAL'}
           </button>
         </div>
       </div>

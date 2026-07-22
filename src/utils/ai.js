@@ -13,7 +13,7 @@ function cleanJsonResponse(text) {
 /**
  * Generates a local fallback diet and workout plan if Gemini API is not available.
  */
-export function generateLocalFallbackPlan({ preference, calorieTarget }) {
+export function generateLocalFallbackPlan({ preference, calorieTarget, goal = 'bulk', age = 25, weight = 70 }) {
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   
   const dietPlan = days.map((dayName, dayIndex) => {
@@ -26,7 +26,18 @@ export function generateLocalFallbackPlan({ preference, calorieTarget }) {
 
     const meals = slots.map((slot) => {
       const templates = MEAL_TEMPLATES[slot.key] || [];
-      let filtered = templates.filter((t) => t.diets.includes(preference));
+      let filtered = [];
+      if (preference === 'non') {
+        const nonVegOnly = templates.filter((t) => t.diets.includes('non') && !t.diets.includes('veg'));
+        if (nonVegOnly.length > 0) {
+          filtered = nonVegOnly;
+        } else {
+          filtered = templates.filter((t) => t.diets.includes('non'));
+        }
+      } else {
+        filtered = templates.filter((t) => t.diets.includes('veg'));
+      }
+
       if (filtered.length === 0) {
         filtered = templates;
       }
@@ -54,8 +65,70 @@ export function generateLocalFallbackPlan({ preference, calorieTarget }) {
   });
 
   const workoutPlan = WORKOUT_ROUTINES.map((routine, dayIndex) => {
+    // Determine dynamic routines or scale values based on goal
+    let adjustedExercises = routine.exercises.map(ex => {
+      let sets = ex.sets;
+      let reps = ex.reps;
+      let rest = ex.rest;
+      let rpe = ex.rpe;
+
+      // Adjust based on goal: 'bulk', 'cut', 'maintain'
+      if (goal === 'cut') {
+        // High reps, short rest, slightly lower sets, lower RPE
+        sets = Math.max(3, sets - 1);
+        if (reps !== 'N/A' && reps !== '30 mins' && reps !== '15 mins' && reps !== '20 mins' && !reps.includes('s') && reps !== '3' && reps !== '5' && reps !== '8-10' && reps !== '6') {
+          reps = '12-15';
+        } else if (reps === '8-10') {
+          reps = '10-12';
+        } else if (reps === '5' || reps === '3' || reps === '6') {
+          reps = '8';
+        }
+        if (rest !== 'N/A' && rest.includes('s')) {
+          const seconds = parseInt(rest, 10);
+          rest = `${Math.max(45, seconds - 30)}s`;
+        }
+        rpe = (parseFloat(rpe) - 0.5).toString();
+      } else if (goal === 'bulk') {
+        // High sets, low-moderate reps (heavier weight), longer rest, high RPE
+        sets = Math.min(5, sets + 1);
+        if (reps !== 'N/A' && reps !== '30 mins' && reps !== '15 mins' && reps !== '20 mins' && !reps.includes('s') && reps !== '3' && reps !== '5' && reps !== '8-10' && reps !== '6') {
+          reps = '6-8';
+        }
+        if (rest !== 'N/A' && rest.includes('s')) {
+          const seconds = parseInt(rest, 10);
+          rest = `${Math.min(180, seconds + 30)}s`;
+        }
+        rpe = Math.min(10, parseFloat(rpe) + 0.5).toString();
+      }
+
+      return {
+        ...ex,
+        sets,
+        reps,
+        rest,
+        rpe
+      };
+    });
+
+    // Custom tip based on age & weight
+    let ageTip = '';
+    if (age > 50) {
+      ageTip = ' As you are over 50, prioritize slow controlled eccentrics (3 seconds lowering) and ensure your joints feel warm before lifting heavier.';
+    } else if (age < 20) {
+      ageTip = ' Focus heavily on learning perfect form rather than lifting maximum weight. Build a solid foundation.';
+    }
+
+    let weightTip = '';
+    if (weight > 95) {
+      weightTip = ' Focus on landing softly during cardio and avoid extra joint-compression where possible.';
+    }
+
+    const focusTip = `${routine.focusTip}${ageTip}${weightTip}`;
+
     return {
       ...routine,
+      exercises: adjustedExercises,
+      focusTip,
       dayIndex
     };
   });

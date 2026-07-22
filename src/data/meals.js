@@ -33,7 +33,7 @@ export const MEAL_TEMPLATES = {
       name: 'Avocado & Eggs Toast',
       description: 'Poached eggs on toasted sourdough bread with smashed avocado.',
       prepTime: '10 mins',
-      diets: ['veg', 'non'],
+      diets: ['non'],
       baseCalories: 480,
       macros: { protein: 22, fat: 28, carbs: 35 },
       bullets: ['Sourdough Toast', 'Avocado Mash', '2 Poached Eggs'],
@@ -71,45 +71,44 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'b_chia_berry',
-      name: 'Vanilla Berry Chia Pudding',
-      description: 'Creamy vanilla chia seed pudding served with fresh raspberries and protein blend.',
-      prepTime: '5 mins',
+      name: 'Sprouted Moong Salad',
+      description: 'Sprouted green gram mixed with chopped onions, tomatoes, cucumber, lemon juice, and chaat masala.',
+      prepTime: '10 mins',
       diets: ['veg', 'non'],
       baseCalories: 400,
       macros: { protein: 28, fat: 11, carbs: 44 },
-      bullets: ['Chia Pudding', 'Protein Powder Blend', 'Mixed Berries'],
+      bullets: ['Moong Sprouts', 'Cucumber & Tomatoes', 'Lemon & Chaat Masala'],
       ingredients: [
-        { name: 'Chia Seeds', baseAmount: 3, unit: 'tbsp' },
-        { name: 'Almond Milk', baseAmount: 150, unit: 'ml' },
-        { name: 'Vanilla Protein Powder', baseAmount: 25, unit: 'g' },
-        { name: 'Mixed Berries', baseAmount: 80, unit: 'g' }
+        { name: 'Sprouted Moong', baseAmount: 120, unit: 'g' },
+        { name: 'Greek Yogurt', baseAmount: 80, unit: 'g' },
+        { name: 'Almonds', baseAmount: 20, unit: 'g' }
       ],
       instructions: [
-        'Mix chia seeds, almond milk, and protein powder in a bowl.',
-        'Let sit overnight or for 4 hours to thicken.',
-        'Garnish with fresh mixed berries before serving.'
+        'Rinse sprouted moong and transfer to a large mixing bowl.',
+        'Add chopped onions, cucumber, tomato, and fresh coriander.',
+        'Dress with fresh lemon juice, salt, and spicy chaat masala, then mix well.'
       ]
     },
     {
       id: 'b_tofu_scramble',
-      name: 'Turmeric Tofu Scramble',
-      description: 'Scrambled tofu with spinach, turmeric, and cherry tomatoes served on sourdough.',
+      name: 'Spiced Tofu Bhurji Toast',
+      description: 'Indian style scrambled tofu cooked with onions, turmeric, spinach, and tomatoes served on whole wheat bread.',
       prepTime: '12 mins',
       diets: ['veg', 'non'],
       baseCalories: 420,
       macros: { protein: 25, fat: 14, carbs: 48 },
-      bullets: ['Scrambled Tofu', 'Sautéed Spinach', 'Sourdough Toast'],
+      bullets: ['Tofu Bhurji', 'Sautéed Spinach', 'Whole Wheat Toast'],
       ingredients: [
         { name: 'Firm Tofu', baseAmount: 150, unit: 'g' },
         { name: 'Spinach', baseAmount: 50, unit: 'g' },
-        { name: 'Sourdough Bread', baseAmount: 1, unit: 'slice' },
+        { name: 'Whole Wheat Bread', baseAmount: 1, unit: 'slice' },
         { name: 'Olive Oil', baseAmount: 1, unit: 'tsp' },
         { name: 'Turmeric & Pepper', baseAmount: 1, unit: 'pinch' }
       ],
       instructions: [
-        'Crumble tofu in a pan with olive oil, turmeric, and spices.',
+        'Crumble tofu in a pan with olive oil, chopped onions, turmeric, and spices.',
         'Sauté for 5 minutes, then add spinach and tomatoes until wilted.',
-        'Serve hot alongside toasted sourdough bread.'
+        'Serve hot alongside toasted whole wheat bread.'
       ]
     },
     {
@@ -135,23 +134,162 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'b_protein_pancakes',
-      name: 'Protein Oat Pancakes',
-      description: 'High-protein pancakes made of oat flour, egg whites, and whey protein.',
-      prepTime: '15 mins',
-      diets: ['veg', 'non'],
+      name: 'Egg White Omelette & Bread',
+      description: 'Fluffy Indian egg white omelette made with green chillies and coriander, served with toasted whole wheat bread.',
+      prepTime: '10 mins',
+      diets: ['non'],
       baseCalories: 460,
-      macros: { protein: 32, fat: 7, carbs: 65 },
-      bullets: ['Oat Flour Pancakes', 'Egg White Blend', 'Maple Syrup Drizzle'],
+      macros: { protein: 32, fat: 8, carbs: 65 },
+      bullets: ['Egg White Omelette', 'Whole Wheat Toast', 'Coriander & Chillies'],
       ingredients: [
-        { name: 'Oat Flour', baseAmount: 70, unit: 'g' },
-        { name: 'Egg Whites', baseAmount: 3, unit: 'large' },
-        { name: 'Whey Protein', baseAmount: 20, unit: 'g' },
-        { name: 'Baking Powder', baseAmount: 0.5, unit: 'tsp' }
+        { name: 'Whole Wheat Bread', baseAmount: 2, unit: 'slices' },
+        { name: 'Egg Whites', baseAmount: 6, unit: 'large' },
+        { name: 'Onions', baseAmount: 30, unit: 'g' },
+        { name: 'Green Chillies', baseAmount: 5, unit: 'g' }
       ],
       instructions: [
-        'Blend oats, egg whites, protein powder, and baking powder until smooth.',
-        'Cook on a non-stick skillet for 2-3 minutes per side.',
-        'Stack and drizzle lightly with organic maple syrup.'
+        'Whisk egg whites with chopped onions, coriander, green chillies, and salt.',
+        'Cook on a non-stick pan with 1 tsp oil/ghee until cooked through.',
+        'Serve hot with toasted whole wheat bread.'
+      ]
+    },
+    {
+      id: 'b_idli_sambhar',
+      name: 'High-Protein Oats Idli & Sambhar',
+      description: 'Healthy steamed oats and semolina idlis served with hot mixed-vegetable lentil sambhar.',
+      prepTime: '15 mins',
+      diets: ['veg', 'non'],
+      baseCalories: 390,
+      macros: { protein: 18, fat: 6, carbs: 64 },
+      bullets: ['3 Oats Idlis', 'Veggie Sambhar', 'Coconut Chutney'],
+      ingredients: [
+        { name: 'Rolled Oats', baseAmount: 60, unit: 'g' },
+        { name: 'Moong Dal', baseAmount: 40, unit: 'g' },
+        { name: 'Low-Fat Yogurt', baseAmount: 50, unit: 'g' }
+      ],
+      instructions: [
+        'Dry roast oats and grind to powder, mix with yogurt and water to make a batter.',
+        'Steam batter in an idli plate for 10-12 minutes.',
+        'Serve hot idlis with freshly made mixed-vegetable sambhar.'
+      ]
+    },
+    {
+      id: 'b_upma_paneer',
+      name: 'High-Protein Oats Paneer Upma',
+      description: 'Savory roasted oats and semolina upma loaded with veggies and cubes of fresh paneer.',
+      prepTime: '12 mins',
+      diets: ['veg', 'non'],
+      baseCalories: 410,
+      macros: { protein: 20, fat: 12, carbs: 55 },
+      bullets: ['Paneer Oats Upma', 'Sautéed Mixed Veggies', 'Lemon Squeeze'],
+      ingredients: [
+        { name: 'Rolled Oats', baseAmount: 60, unit: 'g' },
+        { name: 'Low-Fat Paneer', baseAmount: 80, unit: 'g' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
+      ],
+      instructions: [
+        'Roast oats and set aside. Sauté mustard seeds, curry leaves, onions, and veggies in ghee.',
+        'Add water and bring to a boil, then slowly stir in roasted oats.',
+        'Fold in paneer cubes, cook for 3 minutes, and serve hot.'
+      ]
+    },
+    {
+      id: 'b_egg_bhurji_toast',
+      name: 'Double Egg Bhurji & Toast',
+      description: 'Spiced Indian scrambled eggs cooked with tomatoes, onions, and green chillies, served with toast.',
+      prepTime: '10 mins',
+      diets: ['non'],
+      baseCalories: 450,
+      macros: { protein: 24, fat: 18, carbs: 36 },
+      bullets: ['2-Egg Bhurji', 'Whole Wheat Toast', 'Chopped Coriander'],
+      ingredients: [
+        { name: 'Whole Wheat Bread', baseAmount: 2, unit: 'slices' },
+        { name: 'Eggs', baseAmount: 2, unit: 'large' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
+      ],
+      instructions: [
+        'Sauté onions, tomatoes, and green chillies in ghee.',
+        'Whisk eggs and pour into the pan, scrambling until fully cooked.',
+        'Serve hot alongside toasted whole wheat bread.'
+      ]
+    },
+    {
+      id: 'b_chicken_keema_toast',
+      name: 'Chicken Keema Toast',
+      description: 'Minced chicken breast cooked in home-style spices, served on toasted whole wheat bread.',
+      prepTime: '15 mins',
+      diets: ['non'],
+      baseCalories: 470,
+      macros: { protein: 32, fat: 12, carbs: 40 },
+      bullets: ['Chicken Keema', '2 Slices Whole Wheat Toast'],
+      ingredients: [
+        { name: 'Whole Wheat Bread', baseAmount: 2, unit: 'slices' },
+        { name: 'Chicken Keema', baseAmount: 120, unit: 'g' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
+      ],
+      instructions: [
+        'Cook minced chicken with ginger-garlic paste, spices, and onions until tender.',
+        'Toast whole wheat bread until crisp.',
+        'Spoon hot chicken keema on the toast and serve.'
+      ]
+    },
+    {
+      id: 'b_egg_white_chilla',
+      name: 'Egg White Moong Dal Chilla',
+      description: 'Traditional moong dal lentil pancake reinforced with fluffy whipped egg whites.',
+      prepTime: '12 mins',
+      diets: ['non'],
+      baseCalories: 420,
+      macros: { protein: 26, fat: 8, carbs: 54 },
+      bullets: ['Egg White Chilla', 'Mint Coriander Chutney'],
+      ingredients: [
+        { name: 'Moong Dal Batter', baseAmount: 100, unit: 'ml' },
+        { name: 'Egg Whites', baseAmount: 4, unit: 'large' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
+      ],
+      instructions: [
+        'Whisk egg whites into moong dal batter with salt, pepper, and coriander.',
+        'Pour onto a hot tawa, spread in a circle, and drizzle ghee.',
+        'Cook until golden brown on both sides and serve hot with chutney.'
+      ]
+    },
+    {
+      id: 'b_scrambled_eggs_roti',
+      name: 'Masala Scrambled Eggs & Roti',
+      description: 'Double eggs scrambled with Indian spices, served with fresh whole wheat roti.',
+      prepTime: '10 mins',
+      diets: ['non'],
+      baseCalories: 430,
+      macros: { protein: 22, fat: 16, carbs: 42 },
+      bullets: ['Masala Scrambled Eggs', '2 Whole Wheat Rotis'],
+      ingredients: [
+        { name: 'Eggs', baseAmount: 2, unit: 'large' },
+        { name: 'Roti', baseAmount: 2, unit: 'pieces' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
+      ],
+      instructions: [
+        'Scramble eggs in a pan with ghee, cumin seeds, onions, and turmeric.',
+        'Prepare warm fresh whole wheat rotis on a tawa.',
+        'Serve hot eggs folded inside rotis.'
+      ]
+    },
+    {
+      id: 'b_boiled_eggs_chana',
+      name: 'Boiled Eggs & Chickpea Chaat',
+      description: 'Hard-boiled egg halves served alongside a tangy, spiced boiled chickpea salad.',
+      prepTime: '10 mins',
+      diets: ['non'],
+      baseCalories: 440,
+      macros: { protein: 25, fat: 14, carbs: 48 },
+      bullets: ['3 Hard-Boiled Eggs', 'Spiced Chickpea Salad'],
+      ingredients: [
+        { name: 'Eggs', baseAmount: 3, unit: 'large' },
+        { name: 'Chana', baseAmount: 100, unit: 'g' }
+      ],
+      instructions: [
+        'Boil eggs for 9 minutes, peel and slice in halves.',
+        'Mix boiled chickpeas (chana) with chopped onions, tomatoes, chaat masala, and lemon juice.',
+        'Serve eggs alongside chickpea salad.'
       ]
     }
   ],
@@ -179,23 +317,22 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'l_chicken_asparagus',
-      name: 'Grilled Chicken & Asparagus',
-      description: 'High-protein lean meal designed for post-workout recovery. Includes complex carbohydrates from quinoa.',
+      name: 'Tandoori Chicken & Rice',
+      description: 'High-protein tandoori chicken breast served with cumin-flavored jeera brown rice and green beans.',
       prepTime: '20 mins',
       diets: ['non'],
       baseCalories: 480,
       macros: { protein: 42, fat: 12, carbs: 51 },
-      bullets: ['Grilled Chicken', 'Steamed Asparagus', 'Quinoa Side'],
+      bullets: ['Tandoori Chicken', 'Jeera Brown Rice', 'Sautéed Green Beans'],
       ingredients: [
         { name: 'Chicken Breast', baseAmount: 160, unit: 'g' },
-        { name: 'Asparagus Spears', baseAmount: 150, unit: 'g' },
-        { name: 'Quinoa (Cooked)', baseAmount: 150, unit: 'g' },
+        { name: 'Brown Rice (Cooked)', baseAmount: 180, unit: 'g' },
         { name: 'Olive Oil', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Season chicken breast and grill until fully cooked through.',
-        'Toss asparagus in olive oil and grill or roast for 10 minutes.',
-        'Serve with a side of cooked quinoa.'
+        'Marinate chicken breast in lemon juice, yogurt, and tandoori spices, then grill.',
+        'Sauté green beans in a small skillet with a drop of olive oil.',
+        'Serve hot with warm jeera brown rice.'
       ]
     },
     {
@@ -242,44 +379,43 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'l_fish_rice',
-      name: 'Grilled Salmon & Rice',
-      description: 'Omega-3 rich grilled salmon fillet alongside seasoned brown rice and baby spinach.',
+      name: 'Masala Fish & Brown Rice',
+      description: 'Spiced pan-seared fish fillet cooked in a light home-style coconut tomato gravy, served with basmati brown rice.',
       prepTime: '18 mins',
       diets: ['non'],
       baseCalories: 550,
       macros: { protein: 38, fat: 14, carbs: 68 },
-      bullets: ['Grilled Salmon/Fish', 'Brown Rice', 'Sautéed Spinach'],
+      bullets: ['Masala Fish Fillet', 'Basmati Brown Rice', 'Sautéed Spinach'],
       ingredients: [
-        { name: 'Salmon Fillet', baseAmount: 150, unit: 'g' },
-        { name: 'Brown Rice (Cooked)', baseAmount: 180, unit: 'g' },
+        { name: 'Fish Fillet', baseAmount: 150, unit: 'g' },
+        { name: 'Basmati Brown Rice', baseAmount: 180, unit: 'g' },
         { name: 'Fresh Spinach', baseAmount: 100, unit: 'g' },
-        { name: 'Lemon & Olive Oil', baseAmount: 1, unit: 'tbsp' }
+        { name: 'Olive Oil', baseAmount: 1, unit: 'tbsp' }
       ],
       instructions: [
-        'Pan-sear salmon fillet with olive oil and lemon juice.',
-        'Sauté spinach lightly in garlic and olive oil.',
-        'Serve fish with brown rice and spinach.'
+        'Rub fish fillet with ginger-garlic paste, turmeric, and red chili, then pan-sear in oil.',
+        'Sauté spinach with garlic in a separate pan.',
+        'Serve fish masala hot alongside cooked basmati brown rice.'
       ]
     },
     {
       id: 'l_lentil_buddha',
-      name: 'Lentil Buddha Bowl',
-      description: 'Nutrient-dense bowl with green lentils, roasted sweet potatoes, and organic tahini sauce.',
+      name: 'Dal Tadka & Steamed Rice',
+      description: 'Yellow lentils tempered with cumin, garlic, and ghee, served with brown rice and subzi.',
       prepTime: '20 mins',
       diets: ['veg', 'non'],
       baseCalories: 600,
       macros: { protein: 25, fat: 15, carbs: 91 },
-      bullets: ['Spiced Lentils', 'Sweet Potatoes', 'Tahini Drizzle'],
+      bullets: ['Dal Tadka', 'Brown Rice', 'Sautéed Veggies'],
       ingredients: [
-        { name: 'Brown Lentils (Boiled)', baseAmount: 180, unit: 'g' },
-        { name: 'Sweet Potato (Roasted)', baseAmount: 150, unit: 'g' },
-        { name: 'Kale / Spinach', baseAmount: 60, unit: 'g' },
-        { name: 'Tahini paste', baseAmount: 1.5, unit: 'tbsp' }
+        { name: 'Split Yellow Moong Dal', baseAmount: 100, unit: 'g' },
+        { name: 'Brown Rice (Cooked)', baseAmount: 180, unit: 'g' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Warm up boiled lentils with simple spices.',
-        'Roast sweet potato cubes with olive oil.',
-        'Assemble in a bowl with kale and drizzle with rich tahini sauce.'
+        'Pressure cook yellow lentils with turmeric and salt.',
+        'Prepare a tadka of garlic, cumin seeds, and red chilies in warm ghee.',
+        'Mix tadka into the dal and serve hot with brown rice.'
       ]
     },
     {
@@ -305,23 +441,22 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'l_turkey_wrap',
-      name: 'Lean Turkey Wrap',
-      description: 'Thinly sliced clean turkey breast rolled in a low-carb wrap with garlic hummus and spinach.',
-      prepTime: '10 mins',
+      name: 'Spiced Chicken Keema Roll',
+      description: 'Minced chicken breast cooked with Indian spices and wrapped in a whole wheat roti with fresh onion rings.',
+      prepTime: '15 mins',
       diets: ['non'],
       baseCalories: 490,
       macros: { protein: 35, fat: 13, carbs: 58 },
-      bullets: ['Turkey Breast Slices', 'Whole Wheat Wrap', 'Hummus & Greens'],
+      bullets: ['Chicken Keema', 'Whole Wheat Roti Wrap', 'Onion Rings & Mint chutney'],
       ingredients: [
-        { name: 'Turkey Breast (Deli)', baseAmount: 150, unit: 'g' },
-        { name: 'Whole Wheat Wrap', baseAmount: 1, unit: 'piece' },
-        { name: 'Hummus', baseAmount: 2, unit: 'tbsp' },
-        { name: 'Romaine Lettuce', baseAmount: 50, unit: 'g' }
+        { name: 'Chicken Keema', baseAmount: 150, unit: 'g' },
+        { name: 'Roti', baseAmount: 2, unit: 'pieces' },
+        { name: 'Onions', baseAmount: 30, unit: 'g' }
       ],
       instructions: [
-        'Spread hummus across the whole wheat wrap.',
-        'Layer sliced turkey breast and lettuce on top.',
-        'Roll tightly, slice in half, and serve cold.'
+        'Sauté minced chicken (keema) with cumin, onions, ginger-garlic, and spices until cooked.',
+        'Warm the whole wheat rotis on a tawa.',
+        'Place chicken keema in the middle, top with onion slices, roll tightly and serve.'
       ]
     },
     {
@@ -368,23 +503,22 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'l_shrimp_salad',
-      name: 'Garlic Shrimp Salad',
-      description: 'Pan-seared shrimp seasoned with garlic, tossed with avocado and mixed garden greens.',
+      name: 'Garlic Shrimp Masala & Rice',
+      description: 'Pan-seared shrimp seasoned with mustard seeds, curry leaves, and garlic, served with brown rice.',
       prepTime: '15 mins',
       diets: ['non'],
       baseCalories: 510,
       macros: { protein: 35, fat: 16, carbs: 45 },
-      bullets: ['Garlic Shrimp', 'Avocado Slices', 'Mixed Greens Salad'],
+      bullets: ['Garlic Shrimp Masala', 'Basmati Brown Rice', 'Kachumber Salad'],
       ingredients: [
-        { name: 'Shrimp (Peeled)', baseAmount: 170, unit: 'g' },
-        { name: 'Avocado', baseAmount: 0.5, unit: 'medium' },
-        { name: 'Salad Greens', baseAmount: 120, unit: 'g' },
-        { name: 'Butter', baseAmount: 1, unit: 'tsp' }
+        { name: 'Shrimp', baseAmount: 170, unit: 'g' },
+        { name: 'Basmati Brown Rice', baseAmount: 150, unit: 'g' },
+        { name: 'Olive Oil', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Sauté shrimp in butter and minced garlic for 4-5 minutes.',
-        'Toss mixed greens and avocado slices in lemon vinaigrette.',
-        'Top the salad with warm garlic shrimp and serve.'
+        'Sauté shrimp in a pan with ghee/oil, mustard seeds, curry leaves, ginger, and garlic.',
+        'Cook until shrimp turns pink and tender.',
+        'Serve hot with a side of basmati brown rice.'
       ]
     },
     {
@@ -406,6 +540,45 @@ export const MEAL_TEMPLATES = {
         'Cook onion, ginger, garlic, and tomato paste until oil separates.',
         'Add kidney beans and simmer until gravy is thick.',
         'Serve hot over brown basmati rice with cucumber salad.'
+      ]
+    },
+    {
+      id: 'l_chicken_pulao',
+      name: 'Spiced Chicken Pulao',
+      description: 'Aromatic basmati brown rice cooked with chicken breast chunks, warm spices, and served with cucumber raita.',
+      prepTime: '20 mins',
+      diets: ['non'],
+      baseCalories: 540,
+      macros: { protein: 38, fat: 12, carbs: 70 },
+      bullets: ['Chicken Pulao', 'Cucumber Raita', 'Roasted Papad'],
+      ingredients: [
+        { name: 'Chicken Breast', baseAmount: 150, unit: 'g' },
+        { name: 'Basmati Brown Rice', baseAmount: 150, unit: 'g' },
+        { name: 'Low-Fat Yogurt', baseAmount: 100, unit: 'g' }
+      ],
+      instructions: [
+        'Sauté chicken breast cubes with onions, tomatoes, and pulao spices.',
+        'Add soaked brown rice and water, and pressure cook for 2 whistles.',
+        'Serve hot pulao with a side of refreshing cucumber raita.'
+      ]
+    },
+    {
+      id: 'l_egg_curry_rice',
+      name: 'Boiled Egg Curry & Rice',
+      description: 'Hard-boiled eggs cooked in a flavorful home-style onion-tomato gravy, served with basmati brown rice.',
+      prepTime: '20 mins',
+      diets: ['non'],
+      baseCalories: 530,
+      macros: { protein: 26, fat: 18, carbs: 66 },
+      bullets: ['Egg Curry', 'Basmati Brown Rice', 'Kachumber Salad'],
+      ingredients: [
+        { name: 'Eggs', baseAmount: 3, unit: 'large' },
+        { name: 'Basmati Brown Rice', baseAmount: 150, unit: 'g' }
+      ],
+      instructions: [
+        'Boil and peel eggs, slice in halves, and sauté with turmeric.',
+        'Simmer the eggs in spiced onion-tomato gravy for 10 minutes.',
+        'Serve hot egg curry with steamed brown rice.'
       ]
     }
   ],
@@ -506,22 +679,21 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 's_hummus_carrots',
-      name: 'Hummus & Baby Carrots',
-      description: 'Spiced garlic chickpeas hummus served with carrot and cucumber dipping sticks.',
+      name: 'Roasted Spicy Makhana',
+      description: 'Crisp roasted fox nuts seasoned with turmeric, rock salt, and black pepper.',
       prepTime: '5 mins',
       diets: ['veg', 'non'],
       baseCalories: 240,
       macros: { protein: 8, fat: 12, carbs: 36 },
-      bullets: ['Creamy Hummus', 'Baby Carrots', 'Cucumber Sticks'],
+      bullets: ['Roasted Fox Nuts', 'Spicy Masala Seasoning'],
       ingredients: [
-        { name: 'Hummus (Store-Bought)', baseAmount: 80, unit: 'g' },
-        { name: 'Baby Carrots', baseAmount: 100, unit: 'g' },
-        { name: 'Cucumber', baseAmount: 1, unit: 'small' }
+        { name: 'Fox Nuts', baseAmount: 80, unit: 'g' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Cut cucumbers into clean sticks.',
-        'Plate hummus in a small bowl alongside carrots and cucumber.',
-        'Dip veggies in hummus.'
+        'Heat 1 tsp ghee in a pan on low flame.',
+        'Add fox nuts (makhana) and roast for 4-5 minutes until crunchy.',
+        'Toss with a pinch of turmeric, salt, and pepper, and serve.'
       ]
     },
     {
@@ -547,65 +719,62 @@ export const MEAL_TEMPLATES = {
   dinner: [
     {
       id: 'd_lentil_pasta',
-      name: 'Lentil Pasta',
-      description: 'Protein-rich red lentil pasta tossed with fresh baby greens and high-quality extra virgin olive oil.',
+      name: 'Palak Paneer & Roti',
+      description: 'Paneer cubes simmered in a spiced spinach puree, served with whole wheat rotis.',
       prepTime: '15 mins',
       diets: ['veg', 'non'],
       baseCalories: 800,
       macros: { protein: 42, fat: 24, carbs: 104 },
-      bullets: ['Lentil Pasta', 'Mixed Greens', 'Olive Oil Drizzle'],
+      bullets: ['Palak Paneer', '3 Whole Wheat Rotis', 'Kachumber Salad'],
       ingredients: [
-        { name: 'Red Lentil Pasta (Dry)', baseAmount: 120, unit: 'g' },
-        { name: 'Mixed Salad Greens', baseAmount: 80, unit: 'g' },
-        { name: 'Extra Virgin Olive Oil', baseAmount: 1.5, unit: 'tbsp' },
-        { name: 'Garlic', baseAmount: 2, unit: 'cloves' }
+        { name: 'Paneer', baseAmount: 150, unit: 'g' },
+        { name: 'Spinach', baseAmount: 200, unit: 'g' },
+        { name: 'Roti', baseAmount: 3, unit: 'pieces' }
       ],
       instructions: [
-        'Boil lentil pasta in salted water according to package directions.',
-        'Sauté garlic lightly in olive oil, then toss with the drained pasta.',
-        'Serve hot topped with fresh mixed greens.'
+        'Blanch and puree fresh spinach leaves.',
+        'Cook puree with garlic, ginger, onions, tomatoes, and spices.',
+        'Add paneer cubes and simmer. Serve hot with whole wheat rotis.'
       ]
     },
     {
       id: 'd_beef_veggies',
-      name: 'Sirloin & Roasted Veggies',
-      description: 'Lean grilled sirloin steak with a side of mixed roasted root vegetables and greens.',
+      name: 'Tariwala Egg Curry & Roti',
+      description: 'Home-style Indian egg curry made with hard-boiled eggs in a spicy onion-tomato gravy, served with rotis.',
       prepTime: '20 mins',
       diets: ['non'],
       baseCalories: 720,
       macros: { protein: 50, fat: 32, carbs: 58 },
-      bullets: ['Grilled Sirloin', 'Roasted Root Veggies', 'Olive Oil Dressing'],
+      bullets: ['Tariwala Egg Curry', '3 Whole Wheat Rotis', 'Onion Ring Salad'],
       ingredients: [
-        { name: 'Sirloin Steak', baseAmount: 200, unit: 'g' },
-        { name: 'Sweet Potatoes (Cubed)', baseAmount: 150, unit: 'g' },
-        { name: 'Asparagus & Carrots', baseAmount: 150, unit: 'g' },
-        { name: 'Olive Oil', baseAmount: 1.5, unit: 'tbsp' }
+        { name: 'Eggs', baseAmount: 4, unit: 'large' },
+        { name: 'Roti', baseAmount: 3, unit: 'pieces' },
+        { name: 'Ghee', baseAmount: 1.5, unit: 'tsp' }
       ],
       instructions: [
-        'Season steak and grill to desired level of doneness.',
-        'Toss cubed root veggies and greens in olive oil and roast at 200°C for 20 minutes.',
-        'Serve together hot.'
+        'Boil, peel, and lightly fry the eggs in ghee with a pinch of turmeric.',
+        'Prepare a spicy gravy with onions, tomatoes, ginger, garlic, and garam masala.',
+        'Simmer the eggs in the gravy for 5-7 minutes. Serve hot with rotis.'
       ]
     },
     {
       id: 'd_tofu_stir_fry',
-      name: 'Tofu Vegetable Stir-Fry',
-      description: 'Crispy tofu cubes stir-fried with vegetables and whole wheat noodles in sesame glaze.',
+      name: 'Tofu Matar Masala & Rice',
+      description: 'Tofu cubes and green peas cooked in a rich spiced tomato gravy, served with basmati rice.',
       prepTime: '15 mins',
       diets: ['veg', 'non'],
       baseCalories: 680,
       macros: { protein: 28, fat: 18, carbs: 88 },
-      bullets: ['Stir-Fry Tofu cubes', 'Whole Wheat Noodles', 'Sesame Ginger Glaze'],
+      bullets: ['Tofu Matar Curry', 'Basmati Rice', 'Cucumber Salad'],
       ingredients: [
         { name: 'Tofu', baseAmount: 150, unit: 'g' },
-        { name: 'Whole Wheat Noodles', baseAmount: 100, unit: 'g' },
-        { name: 'Broccoli & Bell Peppers', baseAmount: 120, unit: 'g' },
-        { name: 'Sesame Ginger Sauce', baseAmount: 2, unit: 'tbsp' }
+        { name: 'Basmati Rice', baseAmount: 150, unit: 'g' },
+        { name: 'Olive Oil', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Cook whole wheat noodles in boiling water, drain, and set aside.',
-        'Sauté tofu and mixed veggies in a hot wok with oil.',
-        'Toss noodles, tofu, and glaze sauce together for 3 minutes.'
+        'Sauté tofu cubes in a pan until lightly golden.',
+        'Prepare a masala base with onion, tomato, ginger-garlic, and green peas.',
+        'Add tofu cubes and simmer for 5 minutes. Serve hot with steamed basmati rice.'
       ]
     },
     {
@@ -631,23 +800,22 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'd_salmon_sweet_potato',
-      name: 'Baked Salmon & Mashed Potato',
-      description: 'Seasoned baked salmon fillet alongside light mashed sweet potatoes and asparagus.',
+      name: 'Tandoori Fish Tikka & Salad',
+      description: 'Fish fillets marinated in spiced yogurt and grilled, served with a fresh kachumber salad.',
       prepTime: '20 mins',
       diets: ['non'],
       baseCalories: 690,
       macros: { protein: 40, fat: 22, carbs: 48 },
-      bullets: ['Baked Salmon Fillet', 'Mashed Sweet Potatoes', 'Steamed Asparagus'],
+      bullets: ['Tandoori Fish Tikka', 'Kachumber Salad', 'Mint Yogurt Chutney'],
       ingredients: [
-        { name: 'Salmon Fillet', baseAmount: 160, unit: 'g' },
-        { name: 'Sweet Potatoes (Mashed)', baseAmount: 150, unit: 'g' },
-        { name: 'Asparagus', baseAmount: 120, unit: 'g' },
+        { name: 'Fish Fillet', baseAmount: 180, unit: 'g' },
+        { name: 'Greek Yogurt', baseAmount: 50, unit: 'g' },
         { name: 'Olive Oil', baseAmount: 1, unit: 'tbsp' }
       ],
       instructions: [
-        'Bake salmon fillet for 12-15 minutes at 200°C.',
-        'Mash boiled sweet potatoes with salt and black pepper.',
-        'Plate baked salmon with mashed sweet potato and asparagus.'
+        'Marinate fish fillet in thick yogurt, tandoori masala, lemon juice, and ginger-garlic paste.',
+        'Grill or bake at 200°C for 12-15 minutes.',
+        'Serve hot with a side of kachumber salad and mint chutney.'
       ]
     },
     {
@@ -694,23 +862,22 @@ export const MEAL_TEMPLATES = {
     },
     {
       id: 'd_lentil_soup',
-      name: 'Hearty Lentil Soup',
-      description: 'Warm thick split lentil soup with root veggies, served with toasted sourdough.',
+      name: 'Indian Lentil Shorba & Roti',
+      description: 'A comforting, thick spiced yellow lentil soup served with toasted whole wheat rotis.',
       prepTime: '15 mins',
       diets: ['veg', 'non'],
       baseCalories: 580,
       macros: { protein: 24, fat: 10, carbs: 78 },
-      bullets: ['Mixed Lentil Soup', 'Sourdough Toast Slices'],
+      bullets: ['Yellow Lentil Shorba', '2 Toasted Rotis', 'Lemon Wedges'],
       ingredients: [
-        { name: 'Yellow & Red Lentils', baseAmount: 100, unit: 'g' },
-        { name: 'Sourdough Bread', baseAmount: 2, unit: 'slices' },
-        { name: 'Celery & Carrots', baseAmount: 60, unit: 'g' },
-        { name: 'Olive Oil', baseAmount: 1, unit: 'tsp' }
+        { name: 'Moong Dal', baseAmount: 100, unit: 'g' },
+        { name: 'Roti', baseAmount: 2, unit: 'pieces' },
+        { name: 'Ghee', baseAmount: 1, unit: 'tsp' }
       ],
       instructions: [
-        'Simmer lentils with celery, carrots, and vegetable broth until cooked.',
-        'Blend slightly for a thick texture, and season.',
-        'Serve with toasted sourdough bread.'
+        'Boil yellow moong dal with turmeric and ginger.',
+        'Temper with cumin seeds, garlic, and a touch of red chili in ghee.',
+        'Squeeze in fresh lemon juice and serve with toasted rotis.'
       ]
     },
     {
@@ -752,6 +919,84 @@ export const MEAL_TEMPLATES = {
         'Simmer black lentils slowly in tomato puree and spices.',
         'Prepare whole wheat flatbread flavored with crushed fresh garlic.',
         'Serve dal hot topped with a dollop of yogurt alongside garlic roti.'
+      ]
+    },
+    {
+      id: 'd_chicken_keema_roti',
+      name: 'Chicken Keema Masala & Roti',
+      description: 'Minced chicken breast cooked in aromatic spices, served with whole wheat rotis.',
+      prepTime: '20 mins',
+      diets: ['non'],
+      baseCalories: 660,
+      macros: { protein: 42, fat: 16, carbs: 68 },
+      bullets: ['Chicken Keema Masala', '3 Whole Wheat Rotis', 'Kachumber Salad'],
+      ingredients: [
+        { name: 'Chicken Keema', baseAmount: 180, unit: 'g' },
+        { name: 'Roti', baseAmount: 3, unit: 'pieces' }
+      ],
+      instructions: [
+        'Sauté onions, tomatoes, and ginger-garlic with minced chicken (keema).',
+        'Add spice powders and simmer until chicken is fully tender.',
+        'Serve hot with freshly prepared whole wheat rotis.'
+      ]
+    },
+    {
+      id: 'd_fish_curry_rice',
+      name: 'Goan Fish Curry & Rice',
+      description: 'Traditional coastal fish curry made with coconut milk and mild spices, served with basmati brown rice.',
+      prepTime: '22 mins',
+      diets: ['non'],
+      baseCalories: 680,
+      macros: { protein: 38, fat: 20, carbs: 74 },
+      bullets: ['Goan Fish Curry', 'Basmati Brown Rice', 'Onion Salad'],
+      ingredients: [
+        { name: 'Fish Fillet', baseAmount: 160, unit: 'g' },
+        { name: 'Basmati Brown Rice', baseAmount: 180, unit: 'g' }
+      ],
+      instructions: [
+        'Simmer fish fillet chunks in a coconut milk and tomato-onion spice gravy.',
+        'Prepare brown basmati rice.',
+        'Serve fish curry piping hot over cooked basmati brown rice.'
+      ]
+    },
+    {
+      id: 'd_egg_bhurji_roti',
+      name: 'Double Egg Bhurji & Roti',
+      description: 'Indian scrambled eggs seasoned with garam masala, onions, and chillies, served with rotis.',
+      prepTime: '15 mins',
+      diets: ['non'],
+      baseCalories: 630,
+      macros: { protein: 26, fat: 22, carbs: 64 },
+      bullets: ['Spicy Egg Bhurji', '3 Whole Wheat Rotis', 'Cucumber Slices'],
+      ingredients: [
+        { name: 'Eggs', baseAmount: 3, unit: 'large' },
+        { name: 'Roti', baseAmount: 3, unit: 'pieces' },
+        { name: 'Ghee', baseAmount: 1.5, unit: 'tsp' }
+      ],
+      instructions: [
+        'Sauté onions, chillies, and tomatoes in ghee.',
+        'Add eggs and scramble until done. Season with coriander.',
+        'Serve hot egg bhurji with freshly rolled whole wheat rotis.'
+      ]
+    },
+    {
+      id: 'd_chicken_biryani',
+      name: 'Healthy Chicken Biryani',
+      description: 'Lean chicken breast cooked with aromatic basmati rice and biryani spices, served with spiced raita.',
+      prepTime: '25 mins',
+      diets: ['non'],
+      baseCalories: 710,
+      macros: { protein: 44, fat: 14, carbs: 88 },
+      bullets: ['Chicken Biryani', 'Mixed Raita', 'Fresh Mint & Coriander'],
+      ingredients: [
+        { name: 'Chicken Breast', baseAmount: 180, unit: 'g' },
+        { name: 'Basmati Rice', baseAmount: 150, unit: 'g' },
+        { name: 'Low-Fat Yogurt', baseAmount: 80, unit: 'g' }
+      ],
+      instructions: [
+        'Marinate chicken in yogurt and biryani spices, then sauté.',
+        'Layer chicken with partially cooked basmati rice and steam (dum) for 15 minutes.',
+        'Serve hot with a side of mixed vegetable raita.'
       ]
     }
   ]

@@ -87,7 +87,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 2000 }}>
+    <div className="chatbot-container">
       {/* Floating Button */}
       <button
         type="button"
@@ -119,23 +119,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
 
       {/* Chat Window */}
       {isOpen && (
-        <div
-          className="glass-panel"
-          style={{
-            position: 'absolute',
-            bottom: '72px',
-            right: 0,
-            width: '360px',
-            height: '480px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            background: 'rgba(20, 22, 30, 0.98)',
-            borderRadius: '12px',
-          }}
-        >
+        <div className="glass-panel chatbot-window">
           {/* Header */}
           <div
             style={{

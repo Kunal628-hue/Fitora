@@ -4,7 +4,7 @@ import React from 'react';
  * NextMealCard - Renders the featured 'Next Meal' card matching Design 1.
  * Dynamically picks the relevant meal based on current local hour.
  */
-export default function NextMealCard({ mealsConfig, loggedMeals, onLogMeal, onViewDetails }) {
+export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }) {
   // Determine the next meal slot based on current hour
   const getNextMealSlot = () => {
     const hour = new Date().getHours();
@@ -56,7 +56,6 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onLogMeal, onVi
   }
 
   const { meal, targetCalories } = config;
-  const isLogged = loggedMeals.includes(slot);
 
   return (
     <div 

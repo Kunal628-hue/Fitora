@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MealColumn from './components/MealColumn';
 import DynamicChart from './components/DynamicChart';
 import RecipeModal from './components/RecipeModal';
@@ -100,10 +100,10 @@ export default function App() {
   };
 
   // Build user-scoped localStorage key so each user has isolated data
-  const userKey = (key) => {
+  const userKey = useCallback((key) => {
     const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
     return `fitora_${uid}_${key}`;
-  };
+  }, [currentUser]);
 
   // Check for persisted session on mount
   useEffect(() => {
@@ -293,119 +293,59 @@ export default function App() {
   const loggedProtein = computedProtein;
 
   // Load/reset data whenever the logged-in user changes
+  // Load/reset data whenever the logged-in user changes
   useEffect(() => {
-    if (!authChecked || !currentUser) return;
+    if (!authChecked) return;
+    setIsLoaded(false);
 
     const d = new Date().getDay();
     const todayIdx = d === 0 ? 6 : d - 1;
     setSelectedDayIndex(todayIdx);
 
-    // User-scoped keys
-    const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
-    const prefix = `fitora_${uid}_`;
+    const loadData = async () => {
+      // User-scoped keys
+      const uid = currentUser?.id || currentUser?.uid || currentUser?.email || 'guest';
+      const prefix = `fitora_${uid}_`;
 
-    const savedProfile    = localStorage.getItem(`${prefix}merged_profile`);
-    const savedDietPlan   = localStorage.getItem(`${prefix}diet_plan`);
-    const savedWorkoutPlan= localStorage.getItem(`${prefix}workout_plan`);
-    const savedLoggedDays = localStorage.getItem(`${prefix}logged_days`);
-    const savedStreak     = localStorage.getItem(`${prefix}workout_streak`);
-    const savedCompleted  = localStorage.getItem(`${prefix}workout_completed`);
-    const savedProvider   = localStorage.getItem(`${prefix}ai_provider`);
-    const savedModel      = localStorage.getItem(`${prefix}openrouter_model`);
-
-    if (savedProvider) setAiProvider(savedProvider);
-    if (savedModel) {
-      if (savedModel === 'nvidia/llama-3.1-nemotron-70b-instruct') {
-        localStorage.setItem(`${prefix}openrouter_model`, 'nvidia/llama-3.3-nemotron-super-49b-v1.5');
-        setOpenRouterModel('nvidia/llama-3.3-nemotron-super-49b-v1.5');
-      } else {
-        setOpenRouterModel(savedModel);
-      }
-    }
-
-    let parsedSuccessfully = false;
-
-    if (savedProfile && savedProfile !== 'undefined' &&
-        savedDietPlan && savedDietPlan !== 'undefined' &&
-        savedWorkoutPlan && savedWorkoutPlan !== 'undefined' &&
-        savedLoggedDays && savedLoggedDays !== 'undefined') {
-      try {
-        const profile = JSON.parse(savedProfile);
-
-        let loadedHeight = profile.height;
-        if (loadedHeight && parseFloat(loadedHeight) > 15) {
-          loadedHeight = (parseFloat(loadedHeight) / 30.48).toFixed(1);
-          profile.height = loadedHeight;
-          localStorage.setItem(`${prefix}merged_profile`, JSON.stringify(profile));
+      let cloudData = null;
+      if (supabase && currentUser && uid !== 'guest') {
+        try {
+          const { data, error } = await supabase
+            .from('user_data')
+            .select('*')
+            .single();
+          if (!error && data) {
+            cloudData = data;
+          }
+        } catch (err) {
+          console.error("Error loading user data from Supabase:", err);
         }
-
-        setAge(profile.age || '');
-        setWeight(profile.weight || '');
-        setHeight(loadedHeight || '');
-        setSteps(profile.steps || '');
-        setSleep(profile.sleep || '');
-        setPreference(profile.preference || 'veg');
-        setExtraPreferences(profile.extraPreferences || '');
-        setGoal(profile.goal || 'bulk');
-
-        setCalorieTarget(profile.calorieTarget || 0);
-        setProteinTarget(profile.proteinTarget || 0);
-        setCarbTarget(profile.carbTarget || 0);
-        setFatTarget(profile.fatTarget || 0);
-
-        const parsedDiet    = JSON.parse(savedDietPlan);
-        const parsedWorkout = JSON.parse(savedWorkoutPlan);
-
-        const isDietPlanValid = Array.isArray(parsedDiet) && parsedDiet.length === 7 &&
-          parsedDiet.every(d =>
-            Array.isArray(d.meals) &&
-            d.meals.length === 4 &&
-            d.meals.every(m =>
-              m.meal &&
-              typeof m.meal === 'object' &&
-              Array.isArray(m.meal.ingredients) &&
-              m.meal.ingredients.length > 0 &&
-              typeof m.targetCalories === 'number' &&
-              !isNaN(m.targetCalories)
-            )
-          );
-
-        const isWorkoutPlanValid = Array.isArray(parsedWorkout) && parsedWorkout.length === 7;
-
-        if (isDietPlanValid && isWorkoutPlanValid) {
-          setWeeklyDietPlan(parsedDiet);
-          setWeeklyWorkoutPlan(parsedWorkout);
-          setLoggedDays(JSON.parse(savedLoggedDays));
-          parsedSuccessfully = true;
-        }
-      } catch (err) {
-        console.error("Error loading saved plan:", err);
       }
-    }
 
-    if (!parsedSuccessfully) {
-      // New user — clear any stale data and leave everything empty
-      // so they are prompted to fill in their profile and click Generate My Plan
-      localStorage.removeItem(`${prefix}merged_profile`);
-      localStorage.removeItem(`${prefix}diet_plan`);
-      localStorage.removeItem(`${prefix}workout_plan`);
-      localStorage.removeItem(`${prefix}logged_days`);
+      const savedProfile    = localStorage.getItem(`${prefix}merged_profile`);
+      const savedDietPlan   = localStorage.getItem(`${prefix}diet_plan`);
+      const savedWorkoutPlan= localStorage.getItem(`${prefix}workout_plan`);
+      const savedLoggedDays = localStorage.getItem(`${prefix}logged_days`);
+      const savedStreak     = localStorage.getItem(`${prefix}workout_streak`);
+      const savedCompleted  = localStorage.getItem(`${prefix}workout_completed`);
+      const savedProvider   = localStorage.getItem(`${prefix}ai_provider`);
+      const savedModel      = localStorage.getItem(`${prefix}openrouter_model`);
+      const savedNotes      = localStorage.getItem(`${prefix}daily_notes`);
 
-      setAge('');
-      setWeight('');
-      setHeight('');
-      setSteps('');
-      setSleep('');
-      setPreference('veg');
-      setExtraPreferences('');
-      setGoal('bulk');
-      setCalorieTarget(0);
-      setProteinTarget(0);
-      setCarbTarget(0);
-      setFatTarget(0);
-      setWeeklyDietPlan([]);
-      setWeeklyWorkoutPlan([]);
-      setLoggedDays({
+      if (savedProvider) setAiProvider(savedProvider);
+      if (savedModel) {
+        if (savedModel === 'nvidia/llama-3.1-nemotron-70b-instruct') {
+          localStorage.setItem(`${prefix}openrouter_model`, 'nvidia/llama-3.3-nemotron-super-49b-v1.5');
+          setOpenRouterModel('nvidia/llama-3.3-nemotron-super-49b-v1.5');
+        } else {
+          setOpenRouterModel(savedModel);
+        }
+      }
+
+      let loadedProfile = null;
+      let loadedDiet = [];
+      let loadedWorkout = [];
+      let loadedLoggedDays = {
         0: { calories: 0, protein: 0, meals: [] },
         1: { calories: 0, protein: 0, meals: [] },
         2: { calories: 0, protein: 0, meals: [] },
@@ -413,26 +353,178 @@ export default function App() {
         4: { calories: 0, protein: 0, meals: [] },
         5: { calories: 0, protein: 0, meals: [] },
         6: { calories: 0, protein: 0, meals: [] },
-      });
-    }
+      };
+      let loadedStreak = 0;
+      let loadedCompleted = [];
+      let loadedNotes = [];
+      let hasLocalData = false;
 
-    if (savedStreak) setWorkoutStreak(parseInt(savedStreak, 10) || 0);
-    if (savedCompleted && savedCompleted !== 'undefined') {
-      try { setCompletedDays(JSON.parse(savedCompleted)); }
-      catch (e) { console.error("Error loading completed workouts:", e); }
-    }
+      if (savedProfile && savedProfile !== 'undefined') {
+        try {
+          loadedProfile = JSON.parse(savedProfile);
+          hasLocalData = true;
+        } catch {}
+      }
+      if (savedDietPlan && savedDietPlan !== 'undefined') {
+        try { loadedDiet = JSON.parse(savedDietPlan); } catch {}
+      }
+      if (savedWorkoutPlan && savedWorkoutPlan !== 'undefined') {
+        try { loadedWorkout = JSON.parse(savedWorkoutPlan); } catch {}
+      }
+      if (savedLoggedDays && savedLoggedDays !== 'undefined') {
+        try { loadedLoggedDays = JSON.parse(savedLoggedDays); } catch {}
+      }
+      if (savedStreak) {
+        loadedStreak = parseInt(savedStreak, 10) || 0;
+      }
+      if (savedCompleted && savedCompleted !== 'undefined') {
+        try {
+          const parsed = JSON.parse(savedCompleted);
+          loadedCompleted = Array.isArray(parsed) ? parsed : [];
+        } catch {}
+      }
+      if (savedNotes && savedNotes !== 'undefined') {
+        try {
+          const parsed = JSON.parse(savedNotes);
+          loadedNotes = Array.isArray(parsed) ? parsed : [];
+        } catch {}
+      }
 
-    const savedNotes = localStorage.getItem(`${prefix}daily_notes`);
-    if (savedNotes) {
-      try { setDailyNotes(JSON.parse(savedNotes)); }
-      catch (e) { setDailyNotes([]); }
-    } else {
-      setDailyNotes([]);
-    }
+      // Sync cloud data back to local variables and local storage cache if available
+      if (cloudData) {
+        const profile = cloudData.profile || {};
+        loadedProfile = profile;
+        loadedDiet = Array.isArray(cloudData.diet_plan) ? cloudData.diet_plan : [];
+        loadedWorkout = Array.isArray(cloudData.workout_plan) ? cloudData.workout_plan : [];
+        loadedLoggedDays = cloudData.logged_days || loadedLoggedDays;
+        loadedStreak = cloudData.workout_streak || 0;
+        loadedCompleted = Array.isArray(cloudData.completed_days) ? cloudData.completed_days : [];
+        loadedNotes = Array.isArray(cloudData.daily_notes) ? cloudData.daily_notes : [];
 
-    setIsLoaded(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+        localStorage.setItem(`${prefix}merged_profile`, JSON.stringify(profile));
+        localStorage.setItem(`${prefix}diet_plan`, JSON.stringify(loadedDiet));
+        localStorage.setItem(`${prefix}workout_plan`, JSON.stringify(loadedWorkout));
+        localStorage.setItem(`${prefix}logged_days`, JSON.stringify(loadedLoggedDays));
+        localStorage.setItem(`${prefix}workout_streak`, loadedStreak.toString());
+        localStorage.setItem(`${prefix}workout_completed`, JSON.stringify(loadedCompleted));
+        localStorage.setItem(`${prefix}daily_notes`, JSON.stringify(loadedNotes));
+      } else if (supabase && currentUser && uid !== 'guest' && hasLocalData) {
+        // No cloud data, but we have local data and a signed-in user -> Sync local data to cloud immediately!
+        try {
+          await supabase
+            .from('user_data')
+            .upsert({
+              user_id: uid,
+              updated_at: new Date().toISOString(),
+              profile: loadedProfile,
+              diet_plan: loadedDiet,
+              workout_plan: loadedWorkout,
+              logged_days: loadedLoggedDays,
+              workout_streak: loadedStreak,
+              completed_days: loadedCompleted,
+              daily_notes: loadedNotes
+            });
+        } catch (err) {
+          console.error("Failed to initialize cloud database with local data:", err);
+        }
+      }
+
+      if (loadedProfile) {
+        let loadedHeight = loadedProfile.height;
+        if (loadedHeight && parseFloat(loadedHeight) > 15) {
+          loadedHeight = (parseFloat(loadedHeight) / 30.48).toFixed(1);
+          loadedProfile.height = loadedHeight;
+        }
+
+        setAge(loadedProfile.age || '');
+        setWeight(loadedProfile.weight || '');
+        setHeight(loadedHeight || '');
+        setSteps(loadedProfile.steps || '');
+        setSleep(loadedProfile.sleep || '');
+        setPreference(loadedProfile.preference || 'veg');
+        setExtraPreferences(loadedProfile.extraPreferences || '');
+        setGoal(loadedProfile.goal || 'bulk');
+
+        setCalorieTarget(loadedProfile.calorieTarget || 0);
+        setProteinTarget(loadedProfile.proteinTarget || 0);
+        setCarbTarget(loadedProfile.carbTarget || 0);
+        setFatTarget(loadedProfile.fatTarget || 0);
+      } else {
+        setAge('');
+        setWeight('');
+        setHeight('');
+        setSteps('');
+        setSleep('');
+        setPreference('veg');
+        setExtraPreferences('');
+        setGoal('bulk');
+        setCalorieTarget(0);
+        setProteinTarget(0);
+        setCarbTarget(0);
+        setFatTarget(0);
+      }
+
+      setWeeklyDietPlan(loadedDiet);
+      setWeeklyWorkoutPlan(loadedWorkout);
+      setLoggedDays(loadedLoggedDays);
+      setWorkoutStreak(loadedStreak);
+      setCompletedDays(loadedCompleted);
+      setDailyNotes(loadedNotes);
+
+      setIsLoaded(true);
+    };
+
+    loadData();
   }, [authChecked, currentUser]);
+
+  // Auto-sync state changes to Supabase (debounced to avoid spamming the database)
+  useEffect(() => {
+    if (!isLoaded || !supabase || !currentUser) return;
+    const uid = currentUser.id || currentUser.uid || currentUser.email || 'guest';
+    if (uid === 'guest') return;
+
+    const timer = setTimeout(async () => {
+      const profile = {
+        age,
+        weight,
+        height,
+        steps,
+        sleep,
+        preference,
+        extraPreferences,
+        goal,
+        calorieTarget,
+        proteinTarget,
+        carbTarget,
+        fatTarget,
+      };
+
+      try {
+        await supabase
+          .from('user_data')
+          .upsert({
+            user_id: uid,
+            updated_at: new Date().toISOString(),
+            profile,
+            diet_plan: weeklyDietPlan,
+            workout_plan: weeklyWorkoutPlan,
+            logged_days: loggedDays,
+            workout_streak: workoutStreak,
+            completed_days: completedDays,
+            daily_notes: dailyNotes
+          });
+      } catch (err) {
+        console.error("Auto-sync to Supabase failed:", err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [
+    isLoaded, currentUser, age, weight, height, steps, sleep, preference,
+    extraPreferences, goal, calorieTarget, proteinTarget, carbTarget,
+    fatTarget, weeklyDietPlan, weeklyWorkoutPlan, loggedDays, workoutStreak,
+    completedDays, dailyNotes
+  ]);
 
 
   const showToast = (message) => {
@@ -482,14 +574,6 @@ export default function App() {
     setCarbTarget(c);
     setFatTarget(f);
 
-    const plan = generateLocalFallbackPlan({
-      preference,
-      calorieTarget: calories
-    });
-
-    setWeeklyDietPlan(plan.dietPlan);
-    setWeeklyWorkoutPlan(plan.workoutPlan);
-
     const profile = {
       age: parsedAge.toString(),
       weight: parsedWeight.toString(),
@@ -505,21 +589,36 @@ export default function App() {
       fatTarget: f,
     };
     localStorage.setItem(userKey('merged_profile'), JSON.stringify(profile));
-    localStorage.setItem(userKey('diet_plan'), JSON.stringify(plan.dietPlan));
-    localStorage.setItem(userKey('workout_plan'), JSON.stringify(plan.workoutPlan));
 
-  }, [age, weight, height, steps, sleep, preference, goal, extraPreferences, isLoaded]);
+  }, [age, weight, height, steps, sleep, preference, goal, extraPreferences, isLoaded, isGenerating, userKey]);
 
   // Full AI Generation when clicking "Generate My Plan"
   const handleGeneratePlan = async () => {
-    setIsGenerating(true);
-    showToast('Generating personalized AI plan...');
-
     const parsedAge = parseInt(age, 10);
     const parsedWeight = parseFloat(weight);
     const parsedHeight = parseFloat(height);
     const parsedSteps = parseInt(steps, 10) || 8000;
     const parsedSleep = parseFloat(sleep);
+
+    if (!age || isNaN(parsedAge) || parsedAge <= 0) {
+      showToast('Please enter a valid age.');
+      return;
+    }
+    if (!weight || isNaN(parsedWeight) || parsedWeight <= 0) {
+      showToast('Please enter a valid weight.');
+      return;
+    }
+    if (!height || isNaN(parsedHeight) || parsedHeight <= 0) {
+      showToast('Please enter a valid height.');
+      return;
+    }
+    if (isNaN(parsedSleep) || parsedSleep < 0) {
+      showToast('Please enter valid sleep hours.');
+      return;
+    }
+
+    setIsGenerating(true);
+    showToast('Generating personalized AI plan...');
 
     const heightCm = parsedHeight * 30.48;
     const bmr = calculateBMR(parsedWeight, heightCm, parsedAge, 'male');
@@ -548,6 +647,22 @@ export default function App() {
     setProteinTarget(p);
     setCarbTarget(c);
     setFatTarget(f);
+
+    const profile = {
+      age: parsedAge.toString(),
+      weight: parsedWeight.toString(),
+      height: parsedHeight.toString(),
+      steps: parsedSteps.toString(),
+      sleep: parsedSleep.toString(),
+      preference,
+      extraPreferences,
+      goal,
+      calorieTarget: calories,
+      proteinTarget: p,
+      carbTarget: c,
+      fatTarget: f,
+    };
+    localStorage.setItem(userKey('merged_profile'), JSON.stringify(profile));
 
     const apiKey = secureApiKey;
     let generatedPlan = null;
@@ -582,7 +697,10 @@ export default function App() {
     if (!generatedPlan) {
       generatedPlan = generateLocalFallbackPlan({
         preference,
-        calorieTarget: calories
+        calorieTarget: calories,
+        goal,
+        age: parsedAge,
+        weight: parsedWeight
       });
     }
 
@@ -918,11 +1036,12 @@ export default function App() {
 
     // Add to completed list if not already completed today
     let updatedCompleted = [...completedDays];
+    let newStreak = workoutStreak;
     if (!completedDays.includes(workoutDayIndex)) {
       updatedCompleted.push(workoutDayIndex);
+      newStreak = workoutStreak + 1;
     }
 
-    const newStreak = workoutStreak + 1;
     setWorkoutStreak(newStreak);
     setCompletedDays(updatedCompleted);
 
@@ -936,8 +1055,6 @@ export default function App() {
   const selectedMealConfig = mealsConfig.find((c) => c.slot === selectedMealSlot);
 
   // Computed values
-  const calPercent = Math.min(100, Math.round((loggedCalories / calorieTarget) * 100)) || 0;
-  const calRemaining = Math.max(0, calorieTarget - loggedCalories);
 
   // Show nothing until we've checked localStorage for a stored session
   if (!authChecked) return null;
@@ -1269,6 +1386,7 @@ export default function App() {
             {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((dayName, idx) => {
               const isActive = selectedDayIndex === idx;
               const dayNumber = `0${idx + 1}`;
+              const isCompleted = completedDays.includes(idx);
               return (
                 <button
                   key={idx}
@@ -1280,6 +1398,21 @@ export default function App() {
                   <span className="weekday-name">{dayName}</span>
                   <span className="weekday-num">{dayNumber}</span>
                   {isActive && <div className="weekday-indicator" />}
+                  {isCompleted && (
+                    <span 
+                      style={{ 
+                        position: 'absolute', 
+                        top: '4px', 
+                        right: '4px', 
+                        color: 'var(--accent-coral)', 
+                        fontSize: '0.65rem',
+                        fontWeight: 'bold' 
+                      }}
+                      title="Workout Completed"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -1550,6 +1683,7 @@ export default function App() {
               onEditExercise={handleEditExercise}
               onDeleteExercise={handleDeleteExercise}
               showConfirm={showCustomConfirm}
+              completedDays={completedDays}
             />
           )}
         </main>

@@ -12,6 +12,8 @@ const INGREDIENT_PROT_MAP = {
   'sourdough bread': 4.0, // per slice
   'whole wheat bread': 4.5, // per slice
   'eggs': 6.3, // per large egg
+  'egg white': 3.6, // per egg white
+  'egg whites': 3.6,
   'avocado': 3.0, // per medium
   'peanut butter': 4.0, // per tbsp
   'banana': 1.3, // per medium
@@ -22,30 +24,48 @@ const INGREDIENT_PROT_MAP = {
   'tofu': 8.0 / 100,
   'low-fat paneer': 20.0 / 100,
   'paneer (low-fat)': 20.0 / 100,
+  'paneer': 20.0 / 100,
   'firm tofu or paneer': 14.0 / 100,
   'greek yogurt': 10.0 / 100,
   'greek yogurt (plain)': 10.0 / 100,
   'greek yogurt (fat-free)': 10.3 / 100,
   'chicken breast': 31.0 / 100,
   'chicken breast (cooked & shredded)': 31.0 / 100,
+  'chicken keema': 20.0 / 100,
+  'minced chicken': 20.0 / 100,
   'salmon fillet': 22.0 / 100,
   'salmon': 22.0 / 100,
+  'fish fillet': 22.0 / 100,
+  'fish': 22.0 / 100,
   'shrimp (peeled)': 20.1 / 100,
+  'shrimp': 20.1 / 100,
   'sirloin steak': 27.0 / 100,
   'turkey breast (deli)': 17.0 / 100,
   'smoked turkey breast': 17.0 / 100,
   'brown rice (cooked)': 2.6 / 100,
   'jasmine rice (cooked)': 2.7 / 100,
   'basmati brown rice': 2.6 / 100,
+  'basmati rice': 2.6 / 100,
   'quinoa (cooked)': 4.4 / 100,
   'red lentil pasta (dry)': 25.0 / 100,
   'red lentil penne (dry)': 25.0 / 100,
   'split yellow moong dal': 24.0 / 100,
   'moong dal batter': 10.0 / 100,
+  'moong dal': 24.0 / 100,
+  'sprouted moong': 24.0 / 100,
+  'moong sprouts': 24.0 / 100,
   'boiled chickpeas': 8.9 / 100,
+  'chana': 8.9 / 100,
   'red kidney beans (boiled)': 8.7 / 100,
+  'rajma': 8.7 / 100,
   'soya chunks (dry)': 52.0 / 100,
   'soya chunks': 52.0 / 100,
+  'makhana': 9.7 / 100,
+  'fox nuts': 9.7 / 100,
+  'roti': 3.0, // per piece
+  'chapati': 3.0,
+  'paratha': 4.0,
+  'whole wheat paratha': 4.0,
   'broccoli florets': 2.8 / 100,
   'broccoli': 2.8 / 100,
   'asparagus spears': 2.2 / 100,
@@ -90,7 +110,7 @@ const getIngredientProteins = (ingredients, totalProtein, scaleFactor) => {
  * MealColumn - Renders the vertical meal slot columns matching Design 2.
  * Shows scaled ingredient quantities and accurate ingredient-level macros directly.
  */
-export default function MealColumn({ slot, meal, targetCalories, isLogged, onLog, onSwap, onViewDetails }) {
+export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewDetails }) {
   if (!meal) return null;
 
   const icons = {
