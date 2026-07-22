@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RECIPES_CATALOG } from '../data/recipesData';
 import { generateAiRecipe } from '../utils/ai';
+import { validateInput } from '../utils/validation';
 
 import ribeyeSteakBowl from '../assets/recipes/ribeye_steak_bowl.png';
 import glazedSalmonDish from '../assets/recipes/glazed_salmon_dish.png';
@@ -114,7 +115,14 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
 
   const handleAiSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+
+    // Strict Input Schema Validation
+    const valResult = validateInput(searchQuery, 'SEARCH_QUERY');
+    if (!valResult.valid) {
+      setErrorMsg(`Validation Error: ${valResult.error}`);
+      return;
+    }
+    if (!valResult.parsedValue) return;
 
     setIsLoading(true);
     setErrorMsg('');

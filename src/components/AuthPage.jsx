@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
+import { checkRateLimit, recordAuthFailure, recordAuthSuccess } from '../utils/rateLimiter';
+import { validateAuthForm } from '../utils/validation';
 
 // Gym motivational quotes
 const GYM_QUOTES = [
@@ -184,7 +186,7 @@ function AuthInput({ icon, type, placeholder, value, onChange, showToggle, onTog
 }
 
 // ── Login Screen ────────────────────────────────────────────────────────────
-function LoginScreen({ onSwitch, onLogin }) {
+function LoginScreen({ onSwitch, onReset, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -196,11 +198,21 @@ function LoginScreen({ onSwitch, onLogin }) {
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) { setError('Please fill in all fields.'); return; }
-    
     const sanitizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(sanitizedEmail)) { setError('Please enter a valid email address.'); return; }
+    
+    // Strict Input Schema Validation
+    const valResult = validateAuthForm({ email: sanitizedEmail, password }, 'login');
+    if (!valResult.valid) {
+      setError(valResult.error);
+      return;
+    }
+
+    // Rate Limiting Check (AUTH category: per-IP & per-account with exponential backoff)
+    const rateLimit = checkRateLimit('AUTH', sanitizedEmail);
+    if (!rateLimit.allowed) {
+      setError(rateLimit.reason || `Too many login attempts. Please wait ${rateLimit.retryAfterSeconds}s.`);
+      return;
+    }
 
     setLoading(true); setError('');
     if (!supabase) {
@@ -210,13 +222,16 @@ function LoginScreen({ onSwitch, onLogin }) {
         const users = getMockUsers();
         const foundUser = users.find(u => u.email === sanitizedEmail);
         if (!foundUser) {
-          setError('No account found with this email. Please sign up.');
+          const waitSecs = recordAuthFailure(sanitizedEmail);
+          setError(`No account found with this email. Backoff penalty applied (${waitSecs}s). Please sign up.`);
           return;
         }
         if (foundUser.password !== password) {
-          setError('Incorrect password.');
+          const waitSecs = recordAuthFailure(sanitizedEmail);
+          setError(`Incorrect password. Exponential backoff penalty applied (${waitSecs}s).`);
           return;
         }
+        recordAuthSuccess(sanitizedEmail);
         onLogin({ email: sanitizedEmail, name: foundUser.name });
       }, 800);
       return;
@@ -224,8 +239,10 @@ function LoginScreen({ onSwitch, onLogin }) {
     const { data, error: err } = await supabase.auth.signInWithPassword({ email: sanitizedEmail, password });
     setLoading(false);
     if (err) {
-      setError(err.message);
+      const waitSecs = recordAuthFailure(sanitizedEmail);
+      setError(`${err.message} (Exponential backoff penalty: ${waitSecs}s)`);
     } else if (data?.user) {
+      recordAuthSuccess(sanitizedEmail);
       onLogin({
         email: data.user.email,
         name: data.user.user_metadata?.full_name || data.user.email.split('@')[0]
@@ -234,11 +251,18 @@ function LoginScreen({ onSwitch, onLogin }) {
   };
 
   const handleGoogleLogin = async () => {
+    const rateLimit = checkRateLimit('AUTH');
+    if (!rateLimit.allowed) {
+      setError(rateLimit.reason || `Rate limit reached. Please wait ${rateLimit.retryAfterSeconds}s.`);
+      return;
+    }
+
     if (!supabase) {
       const users = getMockUsers();
       if (!users.some(u => u.email === 'demo@fitora.app')) {
         saveMockUser({ email: 'demo@fitora.app', name: 'Demo User', password: 'password123' });
       }
+      recordAuthSuccess('demo@fitora.app');
       onLogin({ email: 'demo@fitora.app', name: 'Demo User' });
       return;
     }
@@ -246,7 +270,10 @@ function LoginScreen({ onSwitch, onLogin }) {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
-    if (err) setError(err.message);
+    if (err) {
+      recordAuthFailure();
+      setError(err.message);
+    }
   };
 
   return (
@@ -292,12 +319,24 @@ function LoginScreen({ onSwitch, onLogin }) {
             type="email" placeholder="Email address"
             value={email} onChange={e => setEmail(e.target.value)}
           />
-          <AuthInput
-            icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
-            type="password" placeholder="Password"
-            value={password} onChange={e => setPassword(e.target.value)}
-            showToggle onToggle={() => setShowPassword(v => !v)} showPassword={showPassword}
-          />
+          <div>
+            <AuthInput
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
+              type="password" placeholder="Password"
+              value={password} onChange={e => setPassword(e.target.value)}
+              showToggle onToggle={() => setShowPassword(v => !v)} showPassword={showPassword}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.4rem' }}>
+              <button
+                type="button"
+                className="auth-link-btn"
+                onClick={onReset}
+                style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}
+              >
+                Forgot Password?
+              </button>
+            </div>
+          </div>
 
           {error && (
             <div className="auth-error">
@@ -317,8 +356,125 @@ function LoginScreen({ onSwitch, onLogin }) {
           <button className="auth-link-btn" onClick={onSwitch}>Create An Account</button>
         </p>
 
+      </div>
+    </div>
+  );
+}
 
+// ── Reset Password Screen ───────────────────────────────────────────────────
+function ResetPasswordScreen({ onSwitchToLogin }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    // Strict Input Schema Validation
+    const valResult = validateAuthForm({ email: sanitizedEmail }, 'reset');
+    if (!valResult.valid) {
+      setError(valResult.error);
+      return;
+    }
+
+    // Rate Limiting Check on Password Reset route
+    const rateLimit = checkRateLimit('AUTH', sanitizedEmail);
+    if (!rateLimit.allowed) {
+      setError(rateLimit.reason || `Too many reset requests. Please wait ${rateLimit.retryAfterSeconds}s.`);
+      return;
+    }
+
+    setLoading(true); setError(''); setSuccess('');
+
+    if (!supabase) {
+      setTimeout(() => {
+        setLoading(false);
+        const users = getMockUsers();
+        const found = users.find(u => u.email === sanitizedEmail);
+        if (!found) {
+          const waitSecs = recordAuthFailure(sanitizedEmail);
+          setError(`No account found with this email. Backoff penalty applied (${waitSecs}s).`);
+          return;
+        }
+        recordAuthSuccess(sanitizedEmail);
+        setSuccess('Password reset link sent to your email! (Mock)');
+      }, 800);
+      return;
+    }
+
+    const { error: err } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    setLoading(false);
+    if (err) {
+      const waitSecs = recordAuthFailure(sanitizedEmail);
+      setError(`${err.message} (Backoff penalty: ${waitSecs}s)`);
+    } else {
+      recordAuthSuccess(sanitizedEmail);
+      setSuccess('Password reset instructions have been sent to your email.');
+    }
+  };
+
+  return (
+    <div className="auth-screen">
+      <FloatingOrbs />
+
+      <div className="auth-card auth-card-login">
+        <button className="auth-back-btn" onClick={onSwitchToLogin} type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="15,18 9,12 15,6"/>
+          </svg>
+        </button>
+
+        <FitoraLogo size="md" />
+
+        <div style={{ textAlign: 'center', margin: '1.2rem 0 1.5rem' }}>
+          <h1 style={{ fontSize: '1.7rem', fontFamily: "'Outfit',sans-serif", fontWeight: 800, color: '#fff', marginBottom: '0.4rem' }}>
+            Reset Password
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            Enter your email and we'll send you instructions to reset your password.
+          </p>
+        </div>
+
+        {success ? (
+          <div className="auth-success" style={{ textAlign: 'center' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C8FF00" strokeWidth="2" style={{ margin: '0 auto 0.8rem' }}>
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '1rem' }}>{success}</p>
+            <button className="auth-primary-btn" onClick={onSwitchToLogin}>
+              Back to Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+            <AuthInput
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>}
+              type="email" placeholder="Email address"
+              value={email} onChange={e => setEmail(e.target.value)}
+            />
+
+            {error && (
+              <div className="auth-error">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+                {error}
+              </div>
+            )}
+
+            <button className="auth-primary-btn" type="submit" disabled={loading}>
+              {loading ? <span className="auth-spinner"/> : 'Send Reset Link'}
+            </button>
+
+            <button type="button" className="auth-link-btn" onClick={onSwitchToLogin} style={{ marginTop: '0.5rem', textAlign: 'center' }}>
+              Back to Login
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -339,15 +495,28 @@ function SignupScreen({ onSwitch, onLogin }) {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password || !confirmPassword) { setError('Please fill in all fields.'); return; }
-    
     const sanitizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(sanitizedEmail)) { setError('Please enter a valid email address.'); return; }
 
-    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    if (!agreed) { setError('Please agree to the Terms & Conditions.'); return; }
+    // Strict Input Schema Validation
+    const valResult = validateAuthForm({
+      name: name.trim(),
+      email: sanitizedEmail,
+      password,
+      confirmPassword,
+      agreed,
+    }, 'signup');
+
+    if (!valResult.valid) {
+      setError(valResult.error);
+      return;
+    }
+
+    // Rate Limiting Check on Signup route
+    const rateLimit = checkRateLimit('AUTH', sanitizedEmail);
+    if (!rateLimit.allowed) {
+      setError(rateLimit.reason || `Too many signup attempts. Please wait ${rateLimit.retryAfterSeconds}s.`);
+      return;
+    }
 
     setLoading(true); setError('');
 
@@ -358,9 +527,11 @@ function SignupScreen({ onSwitch, onLogin }) {
         const users = getMockUsers();
         const foundUser = users.find(u => u.email === sanitizedEmail);
         if (foundUser) {
-          setError('An account with this email already exists. Please log in instead.');
+          const waitSecs = recordAuthFailure(sanitizedEmail);
+          setError(`An account with this email already exists. Backoff penalty applied (${waitSecs}s). Please log in.`);
           return;
         }
+        recordAuthSuccess(sanitizedEmail);
         saveMockUser({ email: sanitizedEmail, name: name.trim(), password });
         onLogin({ email: sanitizedEmail, name: name.trim() });
       }, 900);
@@ -374,21 +545,30 @@ function SignupScreen({ onSwitch, onLogin }) {
 
     setLoading(false);
     if (err) {
-      setError(err.message);
+      const waitSecs = recordAuthFailure(sanitizedEmail);
+      setError(`${err.message} (Backoff penalty: ${waitSecs}s)`);
     } else if (data?.session) {
-      // If email confirmation is disabled, log in immediately
+      recordAuthSuccess(sanitizedEmail);
       onLogin({ email: sanitizedEmail, name: name.trim() });
     } else {
+      recordAuthSuccess(sanitizedEmail);
       setSuccess('Account created! Please check your email to verify your account.');
     }
   };
 
   const handleGoogleSignup = async () => {
+    const rateLimit = checkRateLimit('AUTH');
+    if (!rateLimit.allowed) {
+      setError(rateLimit.reason || `Rate limit reached. Please wait ${rateLimit.retryAfterSeconds}s.`);
+      return;
+    }
+
     if (!supabase) {
       const users = getMockUsers();
       if (!users.some(u => u.email === 'demo@fitora.app')) {
         saveMockUser({ email: 'demo@fitora.app', name: 'Demo User', password: 'password123' });
       }
+      recordAuthSuccess('demo@fitora.app');
       onLogin({ email: 'demo@fitora.app', name: 'Demo User' });
       return;
     }
@@ -396,7 +576,10 @@ function SignupScreen({ onSwitch, onLogin }) {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
-    if (err) setError(err.message);
+    if (err) {
+      recordAuthFailure();
+      setError(err.message);
+    }
   };
 
   const passwordStrength = () => {
@@ -541,7 +724,7 @@ function SignupScreen({ onSwitch, onLogin }) {
 
 // ── Main Auth Component ──────────────────────────────────────────────────────
 export default function AuthPage({ onAuthSuccess }) {
-  const [screen, setScreen] = useState('login'); // 'login' | 'signup'
+  const [screen, setScreen] = useState('login'); // 'login' | 'signup' | 'reset'
 
   // Check Supabase session on mount
   useEffect(() => {
@@ -557,7 +740,12 @@ export default function AuthPage({ onAuthSuccess }) {
 
   const handleMockLogin = (user) => onAuthSuccess(user);
 
+  if (screen === 'reset') {
+    return <ResetPasswordScreen onSwitchToLogin={() => setScreen('login')} />;
+  }
+
   return screen === 'login'
-    ? <LoginScreen onSwitch={() => setScreen('signup')} onLogin={handleMockLogin} />
+    ? <LoginScreen onSwitch={() => setScreen('signup')} onReset={() => setScreen('reset')} onLogin={handleMockLogin} />
     : <SignupScreen onSwitch={() => setScreen('login')} onLogin={handleMockLogin} />;
 }
+

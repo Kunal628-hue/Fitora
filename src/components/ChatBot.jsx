@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { askChatBotAi } from '../utils/ai';
 import { translations } from '../utils/translations';
+import { validateInput } from '../utils/validation';
 
 export default function ChatBot({ profileContext, apiKey, provider, model, showConfirm, language = 'en' }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,9 +67,16 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (loading) return;
 
-    const userMessage = { role: 'user', content: input.trim() };
+    // Strict Input Schema Validation
+    const valResult = validateInput(input, 'CHAT_MESSAGE');
+    if (!valResult.valid) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `Validation Error: ${valResult.error}` }]);
+      return;
+    }
+
+    const userMessage = { role: 'user', content: valResult.parsedValue };
     const newMessages = [...messages, userMessage];
     
     setMessages(newMessages);

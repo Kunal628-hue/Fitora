@@ -14,6 +14,8 @@ import AuthPage from './components/AuthPage';
 import { supabase } from './utils/supabase';
 import { sendWelcomeEmail } from './utils/emailService';
 import { translations, contentTranslations } from './utils/translations';
+import { checkRateLimit } from './utils/rateLimiter';
+import { validateProfile, validateInput } from './utils/validation';
 
 export default function App() {
   // Auth state
@@ -517,6 +519,13 @@ export default function App() {
         fatTarget,
       };
 
+      // Rate Limiting Check (AUTHENTICATED endpoint: loose limit)
+      const rateLimit = checkRateLimit('AUTHENTICATED', currentUser?.email || '');
+      if (!rateLimit.allowed) {
+        console.warn("Auto-sync rate limited:", rateLimit.reason);
+        return;
+      }
+
       try {
         await supabase
           .from('user_data')
@@ -618,20 +627,20 @@ export default function App() {
     const parsedSteps = parseInt(steps, 10) || 8000;
     const parsedSleep = parseFloat(sleep);
 
-    if (!age || isNaN(parsedAge) || parsedAge <= 0) {
-      showToast('Please enter a valid age.');
-      return;
-    }
-    if (!weight || isNaN(parsedWeight) || parsedWeight <= 0) {
-      showToast('Please enter a valid weight.');
-      return;
-    }
-    if (!height || isNaN(parsedHeight) || parsedHeight <= 0) {
-      showToast('Please enter a valid height.');
-      return;
-    }
-    if (isNaN(parsedSleep) || parsedSleep < 0) {
-      showToast('Please enter valid sleep hours.');
+    // Strict Input Schema Validation
+    const profileValidation = validateProfile({
+      age: parsedAge,
+      weight: parsedWeight,
+      height: parsedHeight,
+      sleep: parsedSleep,
+      steps: parsedSteps,
+      preference,
+      goal,
+      extraPreferences,
+    });
+
+    if (!profileValidation.valid) {
+      showToast(`Validation Error: ${profileValidation.errors[0]}`);
       return;
     }
 
@@ -1549,10 +1558,14 @@ export default function App() {
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!noteInput.trim()) return;
+                  const valRes = validateInput(noteInput, 'NOTE_TEXT');
+                  if (!valRes.valid) {
+                    showToast(`Validation Error: ${valRes.error}`);
+                    return;
+                  }
                   const newNote = {
                     id: Date.now().toString(),
-                    text: noteInput.trim(),
+                    text: valRes.parsedValue,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })
                   };
                   const updatedNotes = [newNote, ...dailyNotes];

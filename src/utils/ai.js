@@ -1,5 +1,6 @@
 import { MEAL_TEMPLATES } from '../data/meals';
 import { WORKOUT_ROUTINES } from '../data/workoutData';
+import { checkRateLimit } from './rateLimiter';
 
 function cleanJsonResponse(text) {
   let cleaned = text.trim();
@@ -139,7 +140,13 @@ export function generateLocalFallbackPlan({ preference, calorieTarget, goal = 'b
 /**
  * Calls AI API (Gemini or OpenRouter) to generate a complete 7-day diet and workout plan.
  */
-export async function generateAiPlan({ age, weight, height, steps, sleep, preference, extraPreferences, goal, targets, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5', language = 'en' }) {
+export async function generateAiPlan({ age, weight, height, steps, sleep, preference, extraPreferences, goal, targets, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5', language = 'en', isAuthenticated = false }) {
+  const rateLimitCategory = isAuthenticated ? 'AUTHENTICATED' : 'PUBLIC';
+  const rateLimit = checkRateLimit(rateLimitCategory);
+  if (!rateLimit.allowed) {
+    throw new Error(rateLimit.reason || `Rate limit reached for AI plan generation. Please wait ${rateLimit.retryAfterSeconds}s.`);
+  }
+
   const langName = language === 'hi' ? 'Hindi (हिन्दी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English';
   const prompt = `You are an expert AI sports nutritionist, strength coach, and personal trainer.
 CRITICAL: You MUST write/translate all recipe names, descriptions, ingredients, instruction steps, routine names, focus areas, and focus tips entirely in ${langName}. Avoid English text in these fields.
@@ -256,7 +263,7 @@ You MUST return a JSON object that adheres strictly to this structure:
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'http://localhost:5173',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
           'X-Title': 'Fitora Performance'
         },
         body: JSON.stringify({
@@ -486,7 +493,7 @@ You MUST return a JSON object matching this schema:
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'http://localhost:5173',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
           'X-Title': 'Fitora Performance'
         },
         body: JSON.stringify({
@@ -587,7 +594,13 @@ You MUST return a JSON object matching this schema:
 /**
  * Calls AI API (Groq, Gemini, or OpenRouter) for a chatbot conversation, passing user profile & plan context.
  */
-export async function askChatBotAi({ messages, profileContext, apiKey, provider = 'groq', model, language = 'en' }) {
+export async function askChatBotAi({ messages, profileContext, apiKey, provider = 'groq', model, language = 'en', isAuthenticated = true }) {
+  const rateLimitCategory = isAuthenticated ? 'AUTHENTICATED' : 'PUBLIC';
+  const rateLimit = checkRateLimit(rateLimitCategory);
+  if (!rateLimit.allowed) {
+    throw new Error(rateLimit.reason || `Rate limit reached for AI Chat. Please wait ${rateLimit.retryAfterSeconds}s.`);
+  }
+
   const langName = language === 'hi' ? 'Hindi (हिन्दी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English';
   const systemPrompt = `You are Fitora AI, a professional athletic coach and clinical sports nutritionist.
 You help the user with precise, evidence-based guidance about their diet, recipes, exercise form, workouts, and fitness goals.
@@ -645,7 +658,7 @@ Response Guidelines:
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'http://localhost:5173',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
           'X-Title': 'Fitora Performance'
         },
         body: JSON.stringify({
@@ -697,7 +710,13 @@ Response Guidelines:
   }
 }
 
-export async function generateAiRecipe({ query, diet, apiKey, provider = 'gemini', model = '' }) {
+export async function generateAiRecipe({ query, diet, apiKey, provider = 'gemini', model = '', isAuthenticated = false }) {
+  const rateLimitCategory = isAuthenticated ? 'AUTHENTICATED' : 'PUBLIC';
+  const rateLimit = checkRateLimit(rateLimitCategory);
+  if (!rateLimit.allowed) {
+    throw new Error(rateLimit.reason || `Rate limit reached for AI Recipe. Please wait ${rateLimit.retryAfterSeconds}s.`);
+  }
+
   if (!apiKey) {
     throw new Error("AI API Key is missing. Please configure it in the Profile Settings.");
   }
@@ -774,7 +793,7 @@ Ensure the calorie and macro math is accurate (1g protein = 4 kcal, 1g carb = 4 
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'http://localhost:5173',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
           'X-Title': 'Fitora Performance'
         },
         body: JSON.stringify({
