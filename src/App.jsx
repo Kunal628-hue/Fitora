@@ -1120,7 +1120,7 @@ export default function App() {
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--text-secondary)' }}>
           {workoutStreak > 0 && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(255, 125, 112, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(200, 255, 0, 0.10)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12.5c-1.38 0-2.5-1.12-2.5-2.5 0-1.89 1.5-3.5 3.5-5.5 2 2 3.5 3.61 3.5 5.5 0 1.38-1.12 2.5-2.5 2.5zM17.66 11.2c-.22-2.15-1.74-4.88-5.66-8.2-3.92 3.32-5.44 6.05-5.66 8.2-1 .92-1.63 2.24-1.63 3.7A5.25 5.25 0 0 0 10.3 20.3a5.25 5.25 0 0 0 7.4 0 5.25 5.25 0 0 0 1.63-3.7c0-1.46-.63-2.78-1.67-3.7z"/></svg>
               {workoutStreak} {t('streakSuffix')}
             </span>
@@ -1192,7 +1192,7 @@ export default function App() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.78rem', fontWeight: 700, color: '#ffffff',
                 flexShrink: 0,
-                boxShadow: '0 0 8px rgba(230, 0, 0, 0.25)',
+                boxShadow: '0 0 8px rgba(200, 255, 0, 0.25)',
               }}>
                 {(currentUser?.name || currentUser?.email || currentUser?.user_metadata?.full_name || 'U')[0].toUpperCase()}
               </div>
@@ -1225,7 +1225,7 @@ export default function App() {
                   flexDirection: 'column',
                   gap: '0.25rem',
                   minWidth: 160,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(230,0,0,0.05)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(200, 255, 0, 0.05)',
                   zIndex: 100,
                   animation: 'welcomeCardSlideUp 0.15s ease-out',
                 }}
@@ -1280,7 +1280,7 @@ export default function App() {
                     transition: 'background 0.2s',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(230,0,0,0.15)';
+                    e.currentTarget.style.background = 'rgba(200, 255, 0, 0.15)';
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'none';
@@ -1404,7 +1404,7 @@ export default function App() {
               <button 
                 type="button" 
                 className="btn btn-primary" 
-                style={{ width: '100%', maxWidth: '360px', minHeight: '44px', background: 'var(--accent-coral)' }}
+                style={{ width: '100%', maxWidth: '360px', minHeight: '44px', background: 'var(--accent-coral)', color: '#000000', fontWeight: 700 }}
                 onClick={handleGeneratePlan}
                 id="generate-plan-btn"
               >
@@ -1592,7 +1592,7 @@ export default function App() {
                     cursor: 'pointer',
                     transition: 'background 0.2s',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#ff1a1a'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#a8e600'}
                   onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-red)'}
                 >
                   Add
@@ -1684,7 +1684,7 @@ export default function App() {
                         }}
                         onMouseEnter={e => {
                           e.currentTarget.style.color = 'var(--accent-red)';
-                          e.currentTarget.style.background = 'rgba(230,0,0,0.1)';
+                          e.currentTarget.style.background = 'rgba(200, 255, 0, 0.08)';
                         }}
                         onMouseLeave={e => {
                           e.currentTarget.style.color = 'var(--text-muted)';
@@ -1861,7 +1861,7 @@ export default function App() {
             style={{ 
               marginBottom: '1.5rem', 
               animation: 'pulse 1.5s infinite ease-in-out',
-              filter: 'drop-shadow(0 0 15px rgba(255, 125, 112, 0.6))',
+              filter: 'drop-shadow(0 0 15px rgba(200, 255, 0, 0.55))',
               color: 'var(--accent-coral)'
             }}
           >
@@ -1953,7 +1953,7 @@ export default function App() {
             borderRadius: '16px',
             width: '100%',
             maxWidth: '400px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(230, 0, 0, 0.2)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(200, 255, 0, 0.20)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -2079,17 +2079,17 @@ export default function App() {
                 style={{
                   background: 'var(--accent-red)',
                   border: 'none',
-                  color: '#ffffff',
+                  color: '#000000',
                   borderRadius: '8px',
                   padding: '0.55rem 1.2rem',
                   fontSize: '0.85rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(230, 0, 0, 0.2)',
+                  boxShadow: '0 4px 12px rgba(200, 255, 0, 0.30)',
                   transition: 'background 0.2s, transform 0.1s',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = '#ff1a1a';
+                  e.currentTarget.style.background = '#a8e600';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = 'var(--accent-red)';

@@ -113,13 +113,13 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
           borderRadius: '50%',
           background: 'var(--accent-coral)',
           border: 'none',
-          boxShadow: '0 8px 24px rgba(255, 125, 112, 0.3)',
+          boxShadow: '0 8px 24px rgba(200, 255, 0, 0.40)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '1.5rem',
-          color: 'white',
+          color: '#000000',
           transition: 'transform 0.2s ease, background 0.2s ease',
         }}
         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -140,7 +140,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
             style={{
               padding: '1rem 1.25rem',
               borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              background: 'rgba(255, 125, 112, 0.05)',
+              background: 'rgba(200, 255, 0, 0.05)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -225,7 +225,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
                     fontSize: '0.85rem',
                     lineHeight: '1.4',
                     background: isAssistant ? 'rgba(255, 255, 255, 0.05)' : 'var(--accent-coral)',
-                    color: isAssistant ? 'var(--text-primary)' : 'white',
+                    color: isAssistant ? 'var(--text-primary)' : '#000000',
                     border: isAssistant ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
                     whiteSpace: 'pre-wrap',
                   }}
@@ -291,7 +291,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
                 border: 'none',
                 borderRadius: '6px',
                 padding: '0.5rem 1rem',
-                color: 'white',
+                color: '#000000',
                 fontSize: '0.85rem',
                 fontWeight: '700',
                 cursor: 'pointer',

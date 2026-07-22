@@ -4,23 +4,23 @@
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Premium Design 1 & 2 Palette */
-  --bg-primary: #07080b; /* Extremely dark black/grey */
-  --bg-secondary: #0d0f14;
-  --bg-card: #12141c;
-  --glass-bg: rgba(18, 20, 28, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  /* Premium Dark Gym Palette */
+  --bg-primary: #050607;        /* Near-black base */
+  --bg-secondary: #0a0b0e;
+  --bg-card: #101218;
+  --glass-bg: rgba(10, 11, 14, 0.90);
+  --glass-border: rgba(200, 255, 0, 0.12);  /* subtle neon green border tint */
 
-  /* Color accents */
-  --accent-red: #e60000;         /* Solid red matching Design 1 buttons */
-  --accent-coral: #ff7d70;       /* Pinkish coral matching Design 2 */
-  --accent-coral-dim: #f2998a;   /* Active toggle matching Design 2 button */
-  --accent-danger: #e60000;
+  /* Fluorescent Green Accents — professional gym theme */
+  --accent-red: #a8e600;            /* Fluorescent lime-green (primary CTA) */
+  --accent-coral: #C8FF00;          /* Electric lime — main highlight colour */
+  --accent-coral-dim: #a8e600;      /* Slightly dimmer lime for hover/active */
+  --accent-danger: #C8FF00;         /* Reusing lime as action colour */
 
-  /* Donut chart matching Design 2 image colors */
-  --color-protein: #f2998a;      /* Coral pink */
-  --color-carbs: #e2e8f0;        /* White/light gray */
-  --color-fat: #8a7b73;          /* Brownish tan */
+  /* Macro chart — green-family palette */
+  --color-protein: #C8FF00;         /* Electric lime */
+  --color-carbs: #e2e8f0;           /* Clean white */
+  --color-fat: #6bcc00;             /* Deep lime-green */
 
   --text-primary: #ffffff;
   --text-secondary: #9ea3b0;
@@ -229,12 +229,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: var(--accent-red);
-  color: #ffffff;
+  background: var(--accent-coral);
+  color: #000000;
 }
 
 .btn-primary:hover {
-  background: #cc0000;
+  background: var(--accent-coral-dim);
+  box-shadow: 0 0 18px rgba(200, 255, 0, 0.40);
 }
 
 .btn-secondary {
@@ -756,10 +757,10 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.45rem;
   padding: 0.65rem 0.85rem;
-  background: rgba(230,0,0,0.08);
-  border: 1px solid rgba(230,0,0,0.22);
+  background: rgba(200, 255, 0, 0.07);
+  border: 1px solid rgba(200, 255, 0, 0.22);
   border-radius: 10px;
-  color: #ff7070;
+  color: #C8FF00;
   font-size: 0.81rem;
   animation: authFadeIn 0.25s ease;
 }
@@ -771,8 +772,8 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
   text-align: center;
   padding: 1.5rem;
-  background: rgba(230,0,0,0.06);
-  border: 1px solid rgba(230,0,0,0.15);
+  background: rgba(200, 255, 0, 0.06);
+  border: 1px solid rgba(200, 255, 0, 0.15);
   border-radius: 14px;
   color: rgba(255,255,255,0.8);
   font-size: 0.9rem;
@@ -795,7 +796,7 @@ h1, h2, h3, h4, h5, h6 {
 .auth-link-btn {
   background: none;
   border: none;
-  color: #e60000;
+  color: #a8e600;
   font-weight: 600;
   cursor: pointer;
   font-size: inherit;
@@ -805,7 +806,7 @@ h1, h2, h3, h4, h5, h6 {
   text-underline-offset: 2px;
   transition: color 0.2s;
 }
-.auth-link-btn:hover { color: #ff3333; }
+.auth-link-btn:hover { color: #C8FF00; }
 
 .auth-terms-label {
   display: flex;
@@ -972,21 +973,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .welcome-email-btn {
-  background: var(--accent-red);
-  color: #fff;
+  background: var(--accent-coral);
+  color: #000000;
   border: none;
   border-radius: 14px;
   padding: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(230, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(200, 255, 0, 0.35);
 }
 
 .welcome-email-btn:hover {
-  background: #ff1a1a;
-  box-shadow: 0 4px 20px rgba(230, 0, 0, 0.45);
+  background: #a8e600;
+  box-shadow: 0 4px 20px rgba(200, 255, 0, 0.5);
 }
 
 .welcome-email-btn:active {

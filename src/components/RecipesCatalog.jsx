@@ -206,7 +206,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
       {/* Title Header */}
       <div style={{ marginBottom: '2.5rem' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1' }}>
-          {t('fuelYour') || "Fuel Your"} <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 15px rgba(255, 125, 112, 0.2)' }}>{t('engine') || "Engine"}</span>
+          {t('fuelYour') || "Fuel Your"} <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 15px rgba(200, 255, 0, 0.20)' }}>{t('engine') || "Engine"}</span>
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginTop: '0.75rem', maxWidth: '700px' }}>
           {t('precisionNutritionDesc') || "Precision nutrition for high-intensity training. Every macro accounted for. Every calorie optimized for performance."}
@@ -421,7 +421,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
                 overflow: 'hidden',
                 background: '#11131a',
                 border: isDirectMatch ? '1px solid var(--accent-coral)' : '1px solid var(--glass-border)',
-                boxShadow: isDirectMatch ? '0 0 15px rgba(255, 125, 112, 0.15)' : 'none',
+                boxShadow: isDirectMatch ? '0 0 15px rgba(200, 255, 0, 0.15)' : 'none',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',

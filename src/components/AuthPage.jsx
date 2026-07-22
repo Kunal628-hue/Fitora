@@ -36,10 +36,10 @@ function FitoraLogo({ size = 'md' }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
       <div style={{
         width: s.icon, height: s.icon,
-        background: 'linear-gradient(135deg, #ff3333 0%, #e60000 50%, #990000 100%)',
+        background: 'linear-gradient(135deg, #C8FF00 0%, #a8e600 50%, #6bcc00 100%)',
         borderRadius: '18px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 0 30px rgba(230,0,0,0.35), 0 4px 20px rgba(0,0,0,0.4)',
+        boxShadow: '0 0 30px rgba(200,255,0,0.40), 0 4px 20px rgba(0,0,0,0.5)',
         position: 'relative',
         overflow: 'hidden',
       }}>
@@ -51,11 +51,11 @@ function FitoraLogo({ size = 'md' }) {
         }} />
         {/* Dumbbell icon */}
         <svg width={s.icon * 0.55} height={s.icon * 0.55} viewBox="0 0 48 48" fill="none">
-          <rect x="4" y="19" width="7" height="10" rx="3" fill="#07080b"/>
-          <rect x="37" y="19" width="7" height="10" rx="3" fill="#07080b"/>
-          <rect x="10" y="16" width="5" height="16" rx="2.5" fill="#07080b"/>
-          <rect x="33" y="16" width="5" height="16" rx="2.5" fill="#07080b"/>
-          <rect x="14" y="21" width="20" height="6" rx="3" fill="#07080b"/>
+          <rect x="4" y="19" width="7" height="10" rx="3" fill="#050607"/>
+          <rect x="37" y="19" width="7" height="10" rx="3" fill="#050607"/>
+          <rect x="10" y="16" width="5" height="16" rx="2.5" fill="#050607"/>
+          <rect x="33" y="16" width="5" height="16" rx="2.5" fill="#050607"/>
+          <rect x="14" y="21" width="20" height="6" rx="3" fill="#050607"/>
         </svg>
       </div>
       <div style={{ textAlign: 'center' }}>
@@ -63,14 +63,14 @@ function FitoraLogo({ size = 'md' }) {
           fontFamily: "'Outfit', sans-serif",
           fontWeight: 800,
           fontSize: s.text,
-          background: 'linear-gradient(135deg, #ffffff 0%, #ff3333 100%)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #C8FF00 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           letterSpacing: '-0.02em',
         }}>FITORA</div>
         <div style={{
           fontSize: s.sub,
-          color: 'rgba(230,0,0,0.85)',
+          color: 'rgba(200,255,0,0.85)',
           fontWeight: 500,
           letterSpacing: '0.15em',
           textTransform: 'uppercase',

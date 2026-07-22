@@ -374,7 +374,7 @@ function ExerciseVisual({ type }) {
               <line x1="40" y1="60" x2="80" y2="80" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
               {/* Glowing Target Ring on Core */}
               <g style={{ transformOrigin: '55px 70px', animation: 'pulseTarget 1.2s infinite ease-in-out' }}>
-                <circle cx="55" cy="70" r="7" stroke="var(--accent-red)" strokeWidth="3.5" fill="rgba(230,0,0,0.15)" />
+                <circle cx="55" cy="70" r="7" stroke="var(--accent-red)" strokeWidth="3.5" fill="rgba(200, 255, 0, 0.15)" />
               </g>
             </svg>
           </div>
@@ -925,7 +925,7 @@ export default function RoutineBrowser({
                   flexDirection: 'column',
                   cursor: 'pointer',
                   transition: 'border-color 0.2s, background 0.2s',
-                  boxShadow: isExpanded ? '0 10px 30px rgba(0,0,0,0.4), 0 0 15px rgba(230,0,0,0.15)' : 'none'
+                  boxShadow: isExpanded ? '0 10px 30px rgba(0,0,0,0.4), 0 0 15px rgba(200, 255, 0, 0.15)' : 'none'
                 }}
                 onMouseEnter={e => {
                   if (!isExpanded) {
@@ -1031,7 +1031,7 @@ export default function RoutineBrowser({
                           transition: 'background 0.2s, border-color 0.2s',
                         }}
                         onMouseEnter={e => {
-                          e.currentTarget.style.background = 'rgba(230,0,0,0.15)';
+                          e.currentTarget.style.background = 'rgba(200, 255, 0, 0.15)';
                           e.currentTarget.style.borderColor = 'var(--accent-red)';
                         }}
                         onMouseLeave={e => {
@@ -1097,7 +1097,7 @@ export default function RoutineBrowser({
 
                       {/* Breathing */}
                       {guide.breathing && (
-                        <div style={{ background: 'rgba(230, 0, 0, 0.05)', borderLeft: '3px solid var(--accent-red)', padding: '0.6rem 0.85rem', borderRadius: '4px' }}>
+                        <div style={{ background: 'rgba(200, 255, 0, 0.05)', borderLeft: '3px solid var(--accent-red)', padding: '0.6rem 0.85rem', borderRadius: '4px' }}>
                           <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--accent-red)', textTransform: 'uppercase', display: 'block', marginBottom: '0.15rem', letterSpacing: '0.05em' }}>{t('breathingTip')}</span>
                           <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: '1.4' }}>{translateContent(guide.breathing)}</p>
                         </div>
@@ -1130,7 +1130,7 @@ export default function RoutineBrowser({
             borderRadius: '16px',
             width: '100%',
             maxWidth: '420px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(230, 0, 0, 0.2)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(200, 255, 0, 0.20)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -1332,17 +1332,17 @@ export default function RoutineBrowser({
                   style={{
                     background: 'var(--accent-red)',
                     border: 'none',
-                    color: '#ffffff',
+                    color: '#000000',
                     borderRadius: '8px',
                     padding: '0.55rem 1.2rem',
                     fontSize: '0.85rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(230, 0, 0, 0.2)',
+                    boxShadow: '0 4px 12px rgba(200, 255, 0, 0.30)',
                     transition: 'background 0.2s, transform 0.1s',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = '#ff1a1a';
+                    e.currentTarget.style.background = '#a8e600';
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'var(--accent-red)';
