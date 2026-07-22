@@ -722,7 +722,9 @@ export default function RoutineBrowser({
   onEditExercise,
   onDeleteExercise,
   showConfirm,
-  completedDays = []
+  completedDays = [],
+  t = k => k,
+  translateContent = k => k
 }) {
   const routines = weeklyWorkoutPlan && weeklyWorkoutPlan.length > 0 ? weeklyWorkoutPlan : WORKOUT_ROUTINES;
   const currentRoutine = routines[selectedDayIndex] || routines[0];
@@ -849,10 +851,10 @@ export default function RoutineBrowser({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h2 style={{ fontSize: '2.2rem', fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
-              {currentRoutine.routineName}
+              {translateContent(currentRoutine.routineName)}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '800', letterSpacing: '0.05em', marginTop: '0.25rem' }}>
-              FOCUS: {currentRoutine.focus}
+              {t('focus') || 'FOCUS'}: {translateContent(currentRoutine.focus)}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -891,7 +893,7 @@ export default function RoutineBrowser({
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              Add Exercise
+              {t('addExercise')}
             </button>
           </div>
         </div>
@@ -960,27 +962,27 @@ export default function RoutineBrowser({
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {ex.name}
+                        {translateContent(ex.name)}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                       </h3>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.1rem' }}>
-                        {ex.sets} SETS X {ex.reps} REPS
+                        {ex.sets} {t('sets').toUpperCase()} X {ex.reps} {t('reps').toUpperCase()}
                       </p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      <span>Rest: {ex.rest}</span>
-                      <span style={{ color: 'var(--accent-coral)' }}>RPE {ex.rpe}</span>
+                      <span>{t('rest')}: {ex.rest}</span>
+                      <span style={{ color: 'var(--accent-coral)' }}>{t('rpe')} {ex.rpe}</span>
                     </div>
 
                     {/* Edit & Delete Exercise Buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}>
                       <button
                         type="button"
-                        title="Edit Exercise"
+                        title={t('editExercise')}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenEdit(ex, idx);
@@ -1012,7 +1014,7 @@ export default function RoutineBrowser({
                       </button>
                       <button
                         type="button"
-                        title="Delete Exercise"
+                        title={t('deleteExercise')}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteClick(idx);
@@ -1065,7 +1067,7 @@ export default function RoutineBrowser({
                     <div style={{ flex: '0 0 150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <ExerciseVisual type={guide.animation} />
                       <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.5rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Visual Guide
+                        {t('visualGuide')}
                       </span>
                     </div>
 
@@ -1073,11 +1075,11 @@ export default function RoutineBrowser({
                     <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                       {/* Muscle Tags */}
                       <div>
-                        <h4 style={{ fontSize: '0.75rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>Target Muscles</h4>
+                        <h4 style={{ fontSize: '0.75rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>{t('targetMuscles')}</h4>
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                           {guide.muscles.map((m, mIdx) => (
                             <span key={mIdx} style={{ fontSize: '0.7rem', fontWeight: '600', background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                              {m}
+                              {translateContent(m)}
                             </span>
                           ))}
                         </div>
@@ -1085,10 +1087,10 @@ export default function RoutineBrowser({
 
                       {/* Steps */}
                       <div>
-                        <h4 style={{ fontSize: '0.75rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>How to Perform</h4>
+                        <h4 style={{ fontSize: '0.75rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>{t('howToPerform')}</h4>
                         <ol style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', paddingLeft: '1.2rem', lineHeight: '1.45', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                           {guide.steps.map((step, sIdx) => (
-                            <li key={sIdx}>{step}</li>
+                            <li key={sIdx}>{translateContent(step)}</li>
                           ))}
                         </ol>
                       </div>
@@ -1096,8 +1098,8 @@ export default function RoutineBrowser({
                       {/* Breathing */}
                       {guide.breathing && (
                         <div style={{ background: 'rgba(230, 0, 0, 0.05)', borderLeft: '3px solid var(--accent-red)', padding: '0.6rem 0.85rem', borderRadius: '4px' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--accent-red)', textTransform: 'uppercase', display: 'block', marginBottom: '0.15rem', letterSpacing: '0.05em' }}>Breathing Tip</span>
-                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: '1.4' }}>{guide.breathing}</p>
+                          <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--accent-red)', textTransform: 'uppercase', display: 'block', marginBottom: '0.15rem', letterSpacing: '0.05em' }}>{t('breathingTip')}</span>
+                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: '1.4' }}>{translateContent(guide.breathing)}</p>
                         </div>
                       )}
                     </div>
@@ -1154,7 +1156,7 @@ export default function RoutineBrowser({
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-coral)" strokeWidth="2.5">
                   <path d="M20.5 11H19V7h-2v4H7V7H5v4H3.5C2.67 11 2 11.67 2 12.5S2.67 14 3.5 14H5v4h2v-4h10v4h2v-4h1.5c.83 0 1.5-.67 1.5-1.5S21.33 11 20.5 11z"/>
                 </svg>
-                {modalMode === 'add' ? 'Add Custom Exercise' : 'Edit Exercise'}
+                {modalMode === 'add' ? t('addExercise') : t('editExercise')}
               </h3>
             </div>
 
@@ -1165,7 +1167,7 @@ export default function RoutineBrowser({
                 {/* Exercise Name */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Exercise Name
+                    {t('exerciseNameLabel')}
                   </label>
                   <input
                     type="text"
@@ -1192,7 +1194,7 @@ export default function RoutineBrowser({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Sets
+                      {t('sets')}
                     </label>
                     <input
                       type="number"
@@ -1216,7 +1218,7 @@ export default function RoutineBrowser({
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Reps
+                      {t('reps')}
                     </label>
                     <input
                       type="text"
@@ -1243,7 +1245,7 @@ export default function RoutineBrowser({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Rest Time
+                      {t('rest')}
                     </label>
                     <input
                       type="text"
@@ -1266,7 +1268,7 @@ export default function RoutineBrowser({
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Target RPE (1-10)
+                      {t('rpeLabel')}
                     </label>
                     <input
                       type="number"
@@ -1323,7 +1325,7 @@ export default function RoutineBrowser({
                     e.currentTarget.style.color = 'var(--text-secondary)';
                   }}
                 >
-                  Cancel
+                  {t('cancelBtn')}
                 </button>
                 <button
                   type="submit"
@@ -1348,7 +1350,7 @@ export default function RoutineBrowser({
                   onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
                   onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Save
+                  {t('saveBtn')}
                 </button>
               </div>
             </form>

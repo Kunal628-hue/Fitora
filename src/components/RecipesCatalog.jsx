@@ -65,7 +65,7 @@ const getUnsplashUrl = (name = '', description = '') => {
  * Veg/Non-Veg toggle filtering, and interactive AI recipe generation.
  * Guaranteed to display at least 7 recipes at once by backfilling matching diet options.
  */
-export default function RecipesCatalog({ onViewDetails, apiKey, provider, model }) {
+export default function RecipesCatalog({ onViewDetails, apiKey, provider, model, t = k => k, translateContent = k => k }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dietType, setDietType] = useState('non'); // 'veg' | 'non'
   const [aiSearchResults, setAiSearchResults] = useState(null); // Array of 7 custom recipes or null
@@ -206,10 +206,10 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
       {/* Title Header */}
       <div style={{ marginBottom: '2.5rem' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1' }}>
-          Fuel Your <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 15px rgba(255, 125, 112, 0.2)' }}>Engine</span>
+          {t('fuelYour') || "Fuel Your"} <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 15px rgba(255, 125, 112, 0.2)' }}>{t('engine') || "Engine"}</span>
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginTop: '0.75rem', maxWidth: '700px' }}>
-          Precision nutrition for high-intensity training. Every macro accounted for. Every calorie optimized for performance.
+          {t('precisionNutritionDesc') || "Precision nutrition for high-intensity training. Every macro accounted for. Every calorie optimized for performance."}
         </p>
       </div>
 
@@ -232,7 +232,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
         <div style={{ flex: 1, minWidth: '280px' }}>
           <input
             type="text"
-            placeholder="Search local or ask AI to generate recipes (e.g. 'high protein chickpea bowl')..."
+            placeholder={t('searchRecipesPlaceholder') || "Search healthy meals..."}
             value={searchQuery}
             onChange={(e) => {
               const val = e.target.value;
@@ -257,7 +257,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
 
         {/* Diet Selector Toggle Switch */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Diet:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{t('diet') || "Diet:"}</span>
           <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '30px', padding: '0.2rem', border: '1px solid var(--glass-border)' }}>
             <button
               type="button"
@@ -278,7 +278,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
-              Veg
+              {t('veg')}
             </button>
             <button
               type="button"
@@ -299,7 +299,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
-              Non-Veg
+              {t('nonVeg')}
             </button>
           </div>
         </div>
@@ -326,12 +326,12 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
           {isLoading ? (
             <>
               <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid #000', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-              Generating...
+              {t('generating') || 'Generating...'}
             </>
           ) : (
             <>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-1.3l-.85-.6C8.74 13.16 8 11.14 8 9c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.14-.74 4.16-2.15 5.1z"/></svg>
-              Ask AI
+              {t('searchAskAiBtn') || 'Ask AI'}
             </>
           )}
         </button>
@@ -467,10 +467,10 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
                       marginBottom: '0.5rem' 
                     }}
                   >
-                    {recipe.tag}
+                    {translateContent(recipe.tag)}
                   </span>
                   <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#ffffff', marginBottom: '1.25rem', lineHeight: '1.2' }}>
-                    {recipe.name}
+                    {translateContent(recipe.name)}
                   </h3>
 
                   {/* Macros Row */}
@@ -483,15 +483,15 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
                     }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prot</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('proteinAbbr') || "Prot"}</span>
                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-protein)' }}>{recipe.macros.protein}g</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Carb</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('carbsAbbr') || "Carb"}</span>
                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>{recipe.macros.carbs}g</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fat</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('fatsAbbr') || "Fat"}</span>
                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>{recipe.macros.fat}g</span>
                     </div>
                   </div>
@@ -517,7 +517,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model 
                   }}
                   id={`recipe-view-btn-${recipe.id}`}
                 >
-                  View Recipe <span style={{ transition: 'transform 0.2s ease' }} className="arrow">→</span>
+                  {t('viewDetailsBtn') || "View Recipe"} <span style={{ transition: 'transform 0.2s ease' }} className="arrow">→</span>
                 </button>
               </div>
             </div>

@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { askChatBotAi } from '../utils/ai';
+import { translations } from '../utils/translations';
 
-export default function ChatBot({ profileContext, apiKey, provider, model, showConfirm }) {
+export default function ChatBot({ profileContext, apiKey, provider, model, showConfirm, language = 'en' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
+      content: language === 'hi' ? "नमस्ते! मैं आपका फिटोरा एआई कोच हूँ। अपनी आहार योजना, सामग्री, व्यायाम या स्वास्थ्य लक्ष्यों के बारे में कुछ भी पूछें!" : language === 'te' ? "హలో! నేను మీ ఫిటోరా AI కోచ్. మీ డైట్ ప్లాన్, కావలసినవి, వర్కౌట్లు లేదా సాధారణ ఆరోగ్య లక్ష్యాల గురించి ఏదైనా అడగండి!" : "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   
   const messagesEndRef = useRef(null);
+
+  const t = (key) => translations[language]?.[key] || translations['en']?.[key] || key;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -35,16 +38,27 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
     }
   }, [messages, isOpen]);
 
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].role === 'assistant') {
+      setMessages([
+        {
+          role: 'assistant',
+          content: language === 'hi' ? "नमस्ते! मैं आपका फिटोरा एआई कोच हूँ। अपनी आहार योजना, सामग्री, व्यायाम या स्वास्थ्य लक्ष्यों के बारे में कुछ भी पूछें!" : language === 'te' ? "హలో! నేను మీ ఫిటోరా AI కోచ్. మీ డైట్ ప్లాన్, కావలసినవి, వర్కౌట్లు లేదా సాధారణ ఆరోగ్య లక్ష్యాల గురించి ఏదైనా అడగండి!" : "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
+        }
+      ]);
+    }
+  }, [language]);
+
   const handleClear = async () => {
     const confirmed = showConfirm 
-      ? await showConfirm('Are you sure you want to clear your chat history?', 'Clear Chat History')
-      : window.confirm('Are you sure you want to clear your chat history?');
+      ? await showConfirm(t('clearChatConfirm'), t('clearChatTitle'))
+      : window.confirm(t('clearChatConfirm'));
 
     if (confirmed) {
       setMessages([
         {
           role: 'assistant',
-          content: "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
+          content: language === 'hi' ? "नमस्ते! मैं आपका फिटोरा एआई कोच हूँ। अपनी आहार योजना, सामग्री, व्यायाम या स्वास्थ्य लक्ष्यों के बारे में कुछ भी पूछें!" : language === 'te' ? "హలో! నేను మీ ఫిటోరా AI కోచ్. మీ డైట్ ప్లాన్, కావలసినవి, వర్కౌట్లు లేదా సాధారణ ఆరోగ్య లక్ష్యాల గురించి ఏదైనా అడగండి!" : "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
         }
       ]);
     }
@@ -71,7 +85,8 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
         profileContext,
         apiKey,
         provider,
-        model
+        model,
+        language
       });
 
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
@@ -109,7 +124,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
         }}
         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-        title="Chat with AI Coach"
+        title={t('fitoraCoach')}
         id="chatbot-trigger-btn"
       >
         {isOpen ? '✕' : (
@@ -136,8 +151,8 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ color: 'var(--accent-coral)' }}><path d="M19 8h-1.18c-.46-2.28-2.48-4-4.82-4-.83 0-1.62.24-2.3.66L9.66 3.62C9.44 3.4 9.11 3.4 8.89 3.62L7.48 5.03c-.22.22-.22.56 0 .78l1.35 1.35C8.34 8.01 8 9.07 8 10.22c0 2.34 1.72 4.36 4 4.82V17h-2c-1.1 0-2 .9-2 2v2h8v-2c0-1.1-.9-2-2-2h-2v-1.96c2.28-.46 4-2.48 4-4.82 0-1.15-.34-2.21-.83-3.05l1.35-1.35c.22-.22.22-.56 0-.78L19 8zM12 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"/></svg>
               </span>
               <div>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700' }}>Fitora Coach</h4>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Online & Ready</span>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700' }}>{t('fitoraCoach')}</h4>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('online')}</span>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -145,7 +160,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
                 <button
                   type="button"
                   onClick={handleClear}
-                  title="Clear Chat"
+                  title={t('clearChatBtn')}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -255,7 +270,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question..."
+              placeholder={t('chatPlaceholder')}
               style={{
                 flex: 1,
                 background: '#090a0f',
@@ -284,7 +299,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
               }}
               id="chatbot-send-btn"
             >
-              Send
+              {t('sendBtn')}
             </button>
           </form>
         </div>

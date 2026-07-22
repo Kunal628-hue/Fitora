@@ -4,7 +4,7 @@ import React from 'react';
  * NextMealCard - Renders the featured 'Next Meal' card matching Design 1.
  * Dynamically picks the relevant meal based on current local hour.
  */
-export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }) {
+export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails, t = k => k, translateContent = k => k }) {
   // Determine the next meal slot based on current hour
   const getNextMealSlot = () => {
     const hour = new Date().getHours();
@@ -50,7 +50,7 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }
   if (!config) {
     return (
       <div className="glass-panel text-center">
-        <p style={{ color: 'var(--text-secondary)' }}>No meals generated yet. Fill in your profile above.</p>
+        <p style={{ color: 'var(--text-secondary)' }}>{t('noMealPlanDesc') || "No meals generated yet. Fill in your profile above."}</p>
       </div>
     );
   }
@@ -141,10 +141,10 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
           <div>
             <span style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--accent-danger)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              NEXT MEAL • {timeLabel}
+              {t('nextMealTitle') || 'NEXT MEAL'} • {timeLabel}
             </span>
             <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '0.25rem', letterSpacing: '-0.02em' }}>
-              {meal.name.toUpperCase()}
+              {translateContent(meal.name).toUpperCase()}
             </h2>
           </div>
           <span 
@@ -158,12 +158,12 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }
               border: '1px solid var(--glass-border)'
             }}
           >
-            {Math.round(targetCalories)} KCAL
+            {Math.round(targetCalories)} {t('kcal') || 'KCAL'}
           </span>
         </div>
 
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
-          {meal.description}
+          {translateContent(meal.description)}
         </p>
 
         {/* Buttons */}
@@ -175,7 +175,7 @@ export default function NextMealCard({ mealsConfig, loggedMeals, onViewDetails }
             onClick={onViewDetails}
             id="next-meal-details-btn"
           >
-            VIEW DETAILS
+            {t('viewDetailsBtn') || 'VIEW DETAILS'}
           </button>
         </div>
       </div>

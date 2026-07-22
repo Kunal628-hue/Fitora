@@ -139,8 +139,10 @@ export function generateLocalFallbackPlan({ preference, calorieTarget, goal = 'b
 /**
  * Calls AI API (Gemini or OpenRouter) to generate a complete 7-day diet and workout plan.
  */
-export async function generateAiPlan({ age, weight, height, steps, sleep, preference, extraPreferences, goal, targets, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5' }) {
+export async function generateAiPlan({ age, weight, height, steps, sleep, preference, extraPreferences, goal, targets, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5', language = 'en' }) {
+  const langName = language === 'hi' ? 'Hindi (हिन्दी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English';
   const prompt = `You are an expert AI sports nutritionist, strength coach, and personal trainer.
+CRITICAL: You MUST write/translate all recipe names, descriptions, ingredients, instruction steps, routine names, focus areas, and focus tips entirely in ${langName}. Avoid English text in these fields.
 Your task is to generate a comprehensive, personalized weekly (7 days, starting from Monday to Sunday) Diet Plan and Workout Plan for a user with the following profile:
 - Age: ${age} years old
 - Weight: ${weight} kg
@@ -414,8 +416,10 @@ You MUST return a JSON object that adheres strictly to this structure:
 /**
  * Calls AI API to generate an alternative meal for swapping.
  */
-export async function generateSingleMealAi({ slot, preference, extraPreferences, goal, targetCalories, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5' }) {
+export async function generateSingleMealAi({ slot, preference, extraPreferences, goal, targetCalories, apiKey, provider = 'gemini', model = 'nvidia/llama-3.3-nemotron-super-49b-v1.5', language = 'en' }) {
+  const langName = language === 'hi' ? 'Hindi (हिन्दी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English';
   const prompt = `You are an expert AI sports nutritionist.
+CRITICAL: You MUST output all text strings (such as meal name, description, ingredients, and instructions) in the ${langName} language. Do NOT use English text.
 Generate an alternative healthy Indian meal for the slot "${slot}".
 Diet Preference: ${preference} (veg/non-veg)
 The meal must incorporate healthy Indian diets/recipes (using healthy Indian ingredients like paneer, tofu, dal, roti, brown rice, chickpea salad, eggs, chicken breast, fish, oats, etc., customized to Indian culinary styles).
@@ -583,7 +587,8 @@ You MUST return a JSON object matching this schema:
 /**
  * Calls AI API (Groq, Gemini, or OpenRouter) for a chatbot conversation, passing user profile & plan context.
  */
-export async function askChatBotAi({ messages, profileContext, apiKey, provider = 'groq', model }) {
+export async function askChatBotAi({ messages, profileContext, apiKey, provider = 'groq', model, language = 'en' }) {
+  const langName = language === 'hi' ? 'Hindi (हिन्दी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English';
   const systemPrompt = `You are Fitora AI, a professional athletic coach and clinical sports nutritionist.
 You help the user with precise, evidence-based guidance about their diet, recipes, exercise form, workouts, and fitness goals.
 
@@ -600,7 +605,8 @@ Here is the user's current profile and targets:
 Response Guidelines:
 1. Maintain a professional, clinical, and authoritative yet supportive tone.
 2. Avoid casual fluff. Provide structured, direct answers.
-3. CRITICAL: Do NOT use markdown stars or asterisks (like **bold** or *italic*) or hashtags (#) in your response. Output clean plain text, using simple capitalization, line spacing, or standard numbered lists (e.g. "1. Morning Workout: ...") for emphasis instead of asterisks.`;
+3. CRITICAL: Do NOT use markdown stars or asterisks (like **bold** or *italic*) or hashtags (#) in your response. Output clean plain text, using simple capitalization, line spacing, or standard numbered lists (e.g. "1. Morning Workout: ...") for emphasis instead of asterisks.
+4. CRITICAL: You MUST write your response entirely in the ${langName} language. Do NOT respond in English.`;
 
   // Combine system prompt with conversation history
   const apiMessages = [

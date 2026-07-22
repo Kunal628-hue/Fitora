@@ -13,6 +13,7 @@ import ChatBot from './components/ChatBot';
 import AuthPage from './components/AuthPage';
 import { supabase } from './utils/supabase';
 import { sendWelcomeEmail } from './utils/emailService';
+import { translations, contentTranslations } from './utils/translations';
 
 export default function App() {
   // Auth state
@@ -200,6 +201,23 @@ export default function App() {
 
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Language state
+  const [language, setLanguage] = useState(() => localStorage.getItem('fitora_lang') || 'en');
+
+  useEffect(() => {
+    localStorage.setItem('fitora_lang', language);
+  }, [language]);
+
+  const t = useCallback((key) => {
+    return translations[language]?.[key] || translations['en']?.[key] || key;
+  }, [language]);
+
+  const translateContent = useCallback((text) => {
+    if (!text) return '';
+    const key = text.toLowerCase().trim();
+    return contentTranslations[language]?.[key] || text;
+  }, [language]);
 
   // Input Panel Form State — empty by default; populated from user-scoped localStorage on mount
   const [age, setAge] = useState('');
@@ -686,7 +704,8 @@ export default function App() {
           },
           apiKey,
           provider: aiProvider,
-          model: openRouterModel
+          model: openRouterModel,
+          language
         });
       } catch (err) {
         console.error(err);
@@ -790,7 +809,8 @@ export default function App() {
           targetCalories: config.targetCalories,
           apiKey,
           provider: aiProvider,
-          model: openRouterModel
+          model: openRouterModel,
+          language
         });
       } catch (err) {
         console.error(err);
@@ -1076,7 +1096,7 @@ export default function App() {
             onClick={() => setActiveTab('dashboard')}
             id="nav-btn-dashboard"
           >
-            Dashboard
+            {t('dashboard')}
           </button>
           <button 
             type="button" 
@@ -1087,7 +1107,7 @@ export default function App() {
             }}
             id="nav-btn-workout"
           >
-            Workout
+            {t('workout')}
           </button>
           <button 
             type="button" 
@@ -1095,16 +1115,49 @@ export default function App() {
             onClick={() => setActiveTab('recipes')}
             id="nav-btn-recipes"
           >
-            Recipes
+            {t('recipes')}
           </button>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--text-secondary)' }}>
           {workoutStreak > 0 && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(255, 125, 112, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12.5c-1.38 0-2.5-1.12-2.5-2.5 0-1.89 1.5-3.5 3.5-5.5 2 2 3.5 3.61 3.5 5.5 0 1.38-1.12 2.5-2.5 2.5zM17.66 11.2c-.22-2.15-1.74-4.88-5.66-8.2-3.92 3.32-5.44 6.05-5.66 8.2-1 .92-1.63 2.24-1.63 3.7A5.25 5.25 0 0 0 10.3 20.3a5.25 5.25 0 0 0 7.4 0 5.25 5.25 0 0 0 1.63-3.7c0-1.46-.63-2.78-1.67-3.7z"/></svg>
-              {workoutStreak} Day Streak
+              {workoutStreak} {t('streakSuffix')}
             </span>
           )}
+
+          {/* Language Selector Dropdown */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                color: 'var(--text-primary)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                outline: 'none',
+                transition: 'background 0.2s, border-color 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+            >
+              <option value="en" style={{ background: '#0e1118', color: '#fff' }}>EN</option>
+              <option value="hi" style={{ background: '#0e1118', color: '#fff' }}>HI (हिन्दी)</option>
+              <option value="te" style={{ background: '#0e1118', color: '#fff' }}>TE (తెలుగు)</option>
+            </select>
+          </div>
+
           {/* User info dropdown menu wrapper */}
           <div style={{ position: 'relative' }}>
             <button
@@ -1254,7 +1307,7 @@ export default function App() {
           <section className="form-panel-card" aria-label="Profile Settings Form">
             <div className="inline-form-grid">
               <div className="form-input-group">
-                <label htmlFor="age">Age</label>
+                <label htmlFor="age">{t('age')}</label>
                 <input
                   type="number"
                   id="age"
@@ -1267,7 +1320,7 @@ export default function App() {
               </div>
 
               <div className="form-input-group">
-                <label htmlFor="weight">Weight (KG)</label>
+                <label htmlFor="weight">{t('weight')}</label>
                 <input
                   type="number"
                   id="weight"
@@ -1280,7 +1333,7 @@ export default function App() {
               </div>
 
               <div className="form-input-group">
-                <label htmlFor="height">Height (FT)</label>
+                <label htmlFor="height">{t('height')}</label>
                 <input
                   type="number"
                   id="height"
@@ -1295,7 +1348,7 @@ export default function App() {
 
 
               <div className="form-input-group">
-                <label htmlFor="sleep">Sleep (HRS)</label>
+                <label htmlFor="sleep">{t('sleep')}</label>
                 <input
                   type="number"
                   id="sleep"
@@ -1310,7 +1363,7 @@ export default function App() {
 
               {/* Preference toggle */}
               <div className="form-input-group">
-                <label>Preference</label>
+                <label>{t('preference')}</label>
                 <div className="toggle-group-row">
                   <button
                     type="button"
@@ -1318,7 +1371,7 @@ export default function App() {
                     onClick={() => setPreference('veg')}
                     id="pref-veg-btn"
                   >
-                    Veg
+                    {t('veg')}
                   </button>
                   <button
                     type="button"
@@ -1326,22 +1379,21 @@ export default function App() {
                     onClick={() => setPreference('non')}
                     id="pref-non-btn"
                   >
-                    Non
+                    {t('nonVeg')}
                   </button>
                 </div>
               </div>
 
 
               {/* Extra Preferences */}
-              {/* Extra Preferences */}
               <div className="form-input-group" style={{ gridColumn: 'span 2' }}>
-                <label htmlFor="extraPreferences">Allergies / Special Requests</label>
+                <label htmlFor="extraPreferences">{t('allergiesLabel')}</label>
                 <input
                   type="text"
                   id="extraPreferences"
                   value={extraPreferences}
                   onChange={(e) => setExtraPreferences(e.target.value)}
-                  placeholder="e.g. gluten-free, focus legs..."
+                  placeholder={t('allergiesPlaceholder')}
                   className="inline-input"
                 />
               </div>
@@ -1356,7 +1408,7 @@ export default function App() {
                 onClick={handleGeneratePlan}
                 id="generate-plan-btn"
               >
-                Generate My Plan
+                {isGenerating ? t('generating') : t('generatePlan')}
               </button>
             </div>
           </section>
@@ -1364,19 +1416,19 @@ export default function App() {
           {/* Targets Strip Row (Design 2 target bar) */}
           <section className="targets-strip-card" aria-label="Nutritional Target Values">
             <div className="target-strip-item">
-              <span className="target-strip-label">Calorie Target</span>
+              <span className="target-strip-label">{t('calorieTarget')}</span>
               <span className="target-strip-value">{calorieTarget}</span>
             </div>
             <div className="target-strip-item">
-              <span className="target-strip-label">Protein</span>
+              <span className="target-strip-label">{t('protein')}</span>
               <span className="target-strip-value">{proteinTarget}<span className="target-strip-unit">g</span></span>
             </div>
             <div className="target-strip-item">
-              <span className="target-strip-label">Carbs</span>
+              <span className="target-strip-label">{t('carbs')}</span>
               <span className="target-strip-value">{carbTarget}<span className="target-strip-unit">g</span></span>
             </div>
             <div className="target-strip-item">
-              <span className="target-strip-label">Fats</span>
+              <span className="target-strip-label">{t('fats')}</span>
               <span className="target-strip-value">{fatTarget}<span className="target-strip-unit">g</span></span>
             </div>
           </section>
@@ -1421,7 +1473,7 @@ export default function App() {
           {/* 4 Column Meal Plan menu list (Design 2) */}
           <section aria-labelledby="daily-meal-plan-menu" style={{ marginBottom: '2.5rem' }}>
             <div className="section-heading-row" id="daily-meal-plan-menu">
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '800' }}>Personalised Meal Plan</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '800' }}>{t('personalisedMealPlan')}</h2>
             </div>
             
             {weeklyDietPlan.length === 0 ? (
@@ -1443,9 +1495,9 @@ export default function App() {
                  <span style={{ display: 'flex', alignItems: 'center' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style={{ opacity: 0.5, marginBottom: '0.75rem', color: 'var(--text-secondary)' }}><path d="M11 9H9V2H7v7H5V2H3v7c0 2.21 1.79 4 4 4v9h2v-9c2.21 0 4-1.79 4-4V2h-2v7zm10-5c0-1.1-.9-2-2-2h-3v12h3c1.1 0 2-.9 2-2V4zm-5 18h2v-6h-2v6z"/></svg>
                 </span>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>No Meal Plan Generated</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{t('noMealPlanTitle')}</h3>
                 <p style={{ maxWidth: '400px', fontSize: '0.85rem', lineHeight: '1.5', margin: '0' }}>
-                  Please enter your profile details above and click <strong>"Generate My Plan"</strong> (or choose your Diet Preference) to build your custom day-wise meal plan.
+                  {t('noMealPlanDesc')}
                 </p>
               </div>
             ) : (
@@ -1464,6 +1516,8 @@ export default function App() {
                       onLog={() => handleLogMeal(slot)}
                       onSwap={() => handleSwapMeal(slot)}
                       onViewDetails={() => handleViewDetails(slot)}
+                      t={t}
+                      translateContent={translateContent}
                     />
                   );
                 })}
@@ -1690,9 +1744,9 @@ export default function App() {
                    <path d="m6.5 6.5 11 11M3 21l3-3m15-15-3 3M17 3l4 4M3 17l4 4"/>
                  </svg>
               </span>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>No Workout Plan Generated</h3>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{t('noWorkoutPlanTitle')}</h3>
               <p style={{ maxWidth: '400px', fontSize: '0.85rem', lineHeight: '1.5', margin: '0' }}>
-                Please enter your profile details on the <strong>Dashboard</strong> tab and click <strong>"Generate My Plan"</strong> to build your custom workout routines.
+                {t('noWorkoutPlanDesc')}
               </p>
             </div>
           ) : isWorkoutActive ? (
@@ -1710,6 +1764,8 @@ export default function App() {
               onDeleteExercise={handleDeleteExercise}
               showConfirm={showCustomConfirm}
               completedDays={completedDays}
+              t={t}
+              translateContent={translateContent}
             />
           )}
         </main>
@@ -1723,6 +1779,8 @@ export default function App() {
             apiKey={secureApiKey}
             provider={aiProvider}
             model={openRouterModel}
+            t={t}
+            translateContent={translateContent}
           />
         </main>
       )}
@@ -1738,7 +1796,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Recipe Instructions Details Modal */}
       <RecipeModal
         isOpen={modalOpen}
         onClose={() => {
@@ -1748,6 +1805,8 @@ export default function App() {
         meal={selectedCatalogRecipe ? selectedCatalogRecipe : selectedMealConfig?.meal}
         targetCalories={selectedCatalogRecipe ? selectedCatalogRecipe.baseCalories : (selectedMealConfig?.targetCalories || 0)}
         isLogged={selectedCatalogRecipe ? loggedMeals.includes(selectedCatalogRecipe.id) : loggedMeals.includes(selectedMealSlot)}
+        t={t}
+        translateContent={translateContent}
         onLog={() => {
           if (selectedCatalogRecipe) {
             const newCalories = loggedCalories + selectedCatalogRecipe.baseCalories;
@@ -1862,6 +1921,7 @@ export default function App() {
         provider={aiProvider}
         model={openRouterModel}
         showConfirm={showCustomConfirm}
+        language={language}
       />
 
       {/* Floating Toast Notification */}

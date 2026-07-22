@@ -110,7 +110,7 @@ const getIngredientProteins = (ingredients, totalProtein, scaleFactor) => {
  * MealColumn - Renders the vertical meal slot columns matching Design 2.
  * Shows scaled ingredient quantities and accurate ingredient-level macros directly.
  */
-export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewDetails }) {
+export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewDetails, t = k => k, translateContent = k => k }) {
   if (!meal) return null;
 
   const icons = {
@@ -128,7 +128,7 @@ export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewD
     ),
   };
 
-  const displaySlotName = slot === 'snack' ? 'SNACKS' : slot.toUpperCase();
+  const displaySlotName = slot === 'snack' ? t('snackMeal') || 'SNACKS' : t(slot).toUpperCase();
   const scaleFactor = targetCalories / (meal.baseCalories || 500);
 
   const formatQuantity = (amount) => {
@@ -178,17 +178,18 @@ export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewD
           {ingredients.map((ing, idx) => {
             const prot = ingredientProteins[idx] || 0;
             const qtyStr = formatQuantity(ing.baseAmount);
+            const unitTrans = ing.unit === 'g' ? (t('g') || 'g') : ing.unit === 'pieces' ? (t('pieces') || 'pieces') : ing.unit;
             return (
               <li key={idx} style={{ fontSize: '0.95rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', color: 'var(--text-primary)', minHeight: '24px' }}>
                 <span style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flex: 1, minWidth: 0 }}>
                   <span style={{ color: 'var(--accent-danger)', marginTop: '3px', flexShrink: 0 }}>•</span>
                   <span style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
-                    <span style={{ fontWeight: '700', color: 'var(--accent-coral)' }}>{qtyStr} {ing.unit}</span> {ing.name}
+                    <span style={{ fontWeight: '700', color: 'var(--accent-coral)' }}>{qtyStr} {unitTrans}</span> {translateContent(ing.name)}
                   </span>
                 </span>
                 {prot > 0 && (
                   <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.05)', padding: '0.15rem 0.35rem', borderRadius: '4px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '2px' }}>
-                    {prot}g P
+                    {prot}g {t('proteinAbbr') || 'P'}
                   </span>
                 )}
               </li>
@@ -210,7 +211,7 @@ export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewD
             color: 'var(--text-secondary)' 
           }}
         >
-          {Math.round(targetCalories)} KCAL
+          {Math.round(targetCalories)} {t('kcal') || 'KCAL'}
         </div>
 
         {/* Actions Row */}
@@ -222,14 +223,14 @@ export default function MealColumn({ slot, meal, targetCalories, onSwap, onViewD
             onClick={onViewDetails}
             id={`details-btn-${slot}`}
           >
-            Recipe
+            {t('recipes') || 'Recipe'}
           </button>
           <button
             type="button"
             className="btn btn-secondary"
             style={{ padding: '0.4rem 0.8rem', minHeight: '38px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             onClick={onSwap}
-            title="Swap Meal"
+            title={t('swapMealBtn') || 'Swap Meal'}
             id={`swap-btn-${slot}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style={{ display: 'block' }}><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
