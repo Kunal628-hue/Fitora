@@ -1118,9 +1118,9 @@ export default function App() {
             {t('recipes')}
           </button>
         </nav>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--text-secondary)' }}>
+        <div className="header-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--text-secondary)' }}>
           {workoutStreak > 0 && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(200, 255, 0, 0.10)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+            <span className="header-streak-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-coral)', background: 'rgba(200, 255, 0, 0.10)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12.5c-1.38 0-2.5-1.12-2.5-2.5 0-1.89 1.5-3.5 3.5-5.5 2 2 3.5 3.61 3.5 5.5 0 1.38-1.12 2.5-2.5 2.5zM17.66 11.2c-.22-2.15-1.74-4.88-5.66-8.2-3.92 3.32-5.44 6.05-5.66 8.2-1 .92-1.63 2.24-1.63 3.7A5.25 5.25 0 0 0 10.3 20.3a5.25 5.25 0 0 0 7.4 0 5.25 5.25 0 0 0 1.63-3.7c0-1.46-.63-2.78-1.67-3.7z"/></svg>
               {workoutStreak} {t('streakSuffix')}
             </span>
@@ -1129,6 +1129,7 @@ export default function App() {
           {/* Language Selector Dropdown */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <select
+              className="header-lang-select"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
               style={{
@@ -1162,6 +1163,7 @@ export default function App() {
           <div style={{ position: 'relative' }}>
             <button
               type="button"
+              className="header-user-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowUserDropdown(!showUserDropdown);
@@ -1196,7 +1198,7 @@ export default function App() {
               }}>
                 {(currentUser?.name || currentUser?.email || currentUser?.user_metadata?.full_name || 'U')[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'rgba(255,255,255,0.95)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span className="header-username" style={{ fontSize: '0.8rem', fontWeight: '600', color: 'rgba(255,255,255,0.95)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {currentUser?.name || currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User'}
               </span>
               <svg 
