@@ -455,6 +455,258 @@ function ExerciseVisual({ type }) {
           </div>
         </>
       )}
+
+      {/* Hang Animation (Decompression Hangs) */}
+      {type === 'hang' && (
+        <>
+          {/* Frame 1: Setup Hang */}
+          <div style={f1}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="15" y1="20" x2="85" y2="20" stroke="rgba(255,255,255,0.2)" strokeWidth="4" strokeLinecap="round" />
+              {/* Figure hanging straight */}
+              <circle cx="50" cy="30" r="6" fill="#ffffff" />
+              <line x1="42" y1="40" x2="42" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="58" y1="40" x2="58" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="42" y1="40" x2="58" y2="40" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+              <line x1="50" y1="40" x2="50" y2="68" stroke="#ffffff" strokeWidth="4" />
+              <line x1="50" y1="68" x2="50" y2="88" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          {/* Frame 2: Decompressed Limp */}
+          <div style={f2}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="15" y1="20" x2="85" y2="20" stroke="rgba(255,255,255,0.2)" strokeWidth="4" strokeLinecap="round" />
+              <circle cx="50" cy="34" r="6" fill="#ffffff" />
+              <line x1="42" y1="44" x2="42" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="58" y1="44" x2="58" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="42" y1="44" x2="58" y2="44" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+              <line x1="50" y1="44" x2="50" y2="72" stroke="#ffffff" strokeWidth="4" />
+              <line x1="50" y1="72" x2="50" y2="92" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          {/* Frame 3: Spine Stretch Glow */}
+          <div style={f3}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="15" y1="20" x2="85" y2="20" stroke="rgba(255,255,255,0.2)" strokeWidth="4" strokeLinecap="round" />
+              <circle cx="50" cy="34" r="6" fill="#ffffff" />
+              <line x1="42" y1="44" x2="42" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="58" y1="44" x2="58" y2="20" stroke="#ffffff" strokeWidth="3.5" />
+              <line x1="42" y1="44" x2="58" y2="44" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+              <line x1="50" y1="44" x2="50" y2="72" stroke="#ffffff" strokeWidth="4" />
+              <line x1="50" y1="72" x2="50" y2="92" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+              {/* Glowing Spine */}
+              <line x1="50" y1="36" x2="50" y2="72" stroke="var(--accent-coral)" strokeWidth="3.5" strokeLinecap="round" style={{ transformOrigin: '50px 54px', animation: 'pulseTarget 1s infinite ease-in-out' }} />
+            </svg>
+          </div>
+        </>
+      )}
+
+      {/* Calf Animation (Standing Calf Raises) */}
+      {type === 'calf' && (
+        <>
+          {/* Frame 1: Heel Down (Stretch) */}
+          <div style={f1}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="90" x2="90" y2="90" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              {/* Step platform */}
+              <rect x="15" y="80" width="35" height="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+              {/* Leg Profile */}
+              <line x1="50" y1="38" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 40 80 L 50 68 L 62 86" stroke="#ffffff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          {/* Frame 2: Heel Flat */}
+          <div style={f2}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="90" x2="90" y2="90" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              <rect x="15" y="80" width="35" height="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+              <line x1="50" y1="38" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 40 80 L 50 68 L 62 80" stroke="#ffffff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          {/* Frame 3: Heel Raised (Peak Contraction) */}
+          <div style={f3}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="90" x2="90" y2="90" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              <rect x="15" y="80" width="35" height="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+              <line x1="50" y1="28" x2="50" y2="58" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 40 80 L 50 58 L 60 66" stroke="#ffffff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Glowing Calf muscle */}
+              <g style={{ transformOrigin: '50px 45px', animation: 'pulseTarget 1s infinite ease-in-out' }}>
+                <circle cx="50" cy="45" r="5" fill="var(--accent-red)" />
+              </g>
+            </svg>
+          </div>
+        </>
+      )}
+
+      {/* Lateral Raises Animation */}
+      {type === 'lateral' && (
+        <>
+          {/* Frame 1: Weights down at sides */}
+          <div style={f1}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="25" r="6" fill="#ffffff" />
+              <line x1="50" y1="31" x2="50" y2="62" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              {/* Left/Right Legs */}
+              <path d="M 50 62 L 42 85 M 50 62 L 58 85" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Arms down */}
+              <line x1="42" y1="35" x2="42" y2="60" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              <line x1="58" y1="35" x2="58" y2="60" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Dumbbells */}
+              <line x1="37" y1="60" x2="47" y2="60" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="36" y="56" width="3" height="8" rx="0.5" fill="var(--accent-red)" />
+              <rect x="45" y="56" width="3" height="8" rx="0.5" fill="var(--accent-red)" />
+              <line x1="53" y1="60" x2="63" y2="60" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="52" y="56" width="3" height="8" rx="0.5" fill="var(--accent-red)" />
+              <rect x="61" y="56" width="3" height="8" rx="0.5" fill="var(--accent-red)" />
+            </svg>
+          </div>
+          {/* Frame 2: Arms Halfway raised */}
+          <div style={f2}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="25" r="6" fill="#ffffff" />
+              <line x1="50" y1="31" x2="50" y2="62" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 50 62 L 42 85 M 50 62 L 58 85" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Arms raising */}
+              <line x1="42" y1="35" x2="28" y2="48" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              <line x1="58" y1="35" x2="72" y2="48" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Dumbbells angled */}
+              <line x1="24" y1="44" x2="32" y2="52" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="23" y="40" width="3" height="8" rx="0.5" fill="var(--accent-red)" transform="rotate(-30 23 40)" />
+              <rect x="30" y="47" width="3" height="8" rx="0.5" fill="var(--accent-red)" transform="rotate(-30 30 47)" />
+              <line x1="68" y1="52" x2="76" y2="44" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="67" y="49" width="3" height="8" rx="0.5" fill="var(--accent-red)" transform="rotate(30 67 49)" />
+              <rect x="74" y="42" width="3" height="8" rx="0.5" fill="var(--accent-red)" transform="rotate(30 74 42)" />
+            </svg>
+          </div>
+          {/* Frame 3: Arms Parallel (T-Pose) */}
+          <div style={f3}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="25" r="6" fill="#ffffff" />
+              <line x1="50" y1="31" x2="50" y2="62" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 50 62 L 42 85 M 50 62 L 58 85" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Arms parallel */}
+              <line x1="42" y1="35" x2="18" y2="35" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              <line x1="58" y1="35" x2="82" y2="35" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Dumbbells vertical */}
+              <line x1="18" y1="30" x2="18" y2="40" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="14" y="29" width="8" height="3" rx="0.5" fill="var(--accent-red)" />
+              <rect x="14" y="38" width="8" height="3" rx="0.5" fill="var(--accent-red)" />
+              <line x1="82" y1="30" x2="82" y2="40" stroke="#ffffff" strokeWidth="2.5" />
+              <rect x="78" y="29" width="8" height="3" rx="0.5" fill="var(--accent-red)" />
+              <rect x="78" y="38" width="8" height="3" rx="0.5" fill="var(--accent-red)" />
+              {/* Glowing Shoulder Caps */}
+              <g style={{ transformOrigin: '41px 35px', animation: 'pulseTarget 1s infinite ease-in-out' }}>
+                <circle cx="41" cy="35" r="4.5" fill="var(--accent-red)" />
+              </g>
+              <g style={{ transformOrigin: '59px 35px', animation: 'pulseTarget 1s infinite ease-in-out' }}>
+                <circle cx="59" cy="35" r="4.5" fill="var(--accent-red)" />
+              </g>
+            </svg>
+          </div>
+        </>
+      )}
+
+      {/* Hamstring Curls (Leg Curls) */}
+      {type === 'legcurl' && (
+        <>
+          {/* Frame 1: Legs Straight */}
+          <div style={f1}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              {/* Prone Bench */}
+              <line x1="20" y1="75" x2="80" y2="70" stroke="rgba(255,255,255,0.2)" strokeWidth="3" strokeLinecap="round" />
+              <line x1="30" y1="74" x2="30" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              <line x1="70" y1="71" x2="70" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              {/* Body */}
+              <circle cx="22" cy="60" r="5" fill="#ffffff" />
+              <line x1="30" y1="65" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="50" y1="68" x2="68" y2="70" stroke="#ffffff" strokeWidth="4.5" />
+              {/* Lower leg straight */}
+              <line x1="68" y1="70" x2="82" y2="72" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="82" cy="72" r="4" fill="var(--accent-red)" />
+            </svg>
+          </div>
+          {/* Frame 2: Legs 45 Deg */}
+          <div style={f2}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="20" y1="75" x2="80" y2="70" stroke="rgba(255,255,255,0.2)" strokeWidth="3" strokeLinecap="round" />
+              <line x1="30" y1="74" x2="30" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              <line x1="70" y1="71" x2="70" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              <circle cx="22" cy="60" r="5" fill="#ffffff" />
+              <line x1="30" y1="65" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="50" y1="68" x2="68" y2="70" stroke="#ffffff" strokeWidth="4.5" />
+              {/* Lower leg 45 deg */}
+              <line x1="68" y1="70" x2="78" y2="52" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="78" cy="52" r="4" fill="var(--accent-red)" />
+            </svg>
+          </div>
+          {/* Frame 3: Legs Curled (90 Deg) */}
+          <div style={f3}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="20" y1="75" x2="80" y2="70" stroke="rgba(255,255,255,0.2)" strokeWidth="3" strokeLinecap="round" />
+              <line x1="30" y1="74" x2="30" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              <line x1="70" y1="71" x2="70" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" />
+              <circle cx="22" cy="60" r="5" fill="#ffffff" />
+              <line x1="30" y1="65" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="50" y1="68" x2="68" y2="70" stroke="#ffffff" strokeWidth="4.5" />
+              {/* Lower leg curled */}
+              <line x1="68" y1="70" x2="66" y2="42" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="66" cy="42" r="4" fill="var(--accent-red)" />
+              {/* Glowing hamstring muscle */}
+              <g style={{ transformOrigin: '59px 69px', animation: 'pulseTarget 1s infinite ease-in-out' }}>
+                <circle cx="59" cy="69" r="4.5" fill="var(--accent-red)" />
+              </g>
+            </svg>
+          </div>
+        </>
+      )}
+
+      {/* Hip Opener Flow (Lunges/Stretches) */}
+      {type === 'stretch_lunge' && (
+        <>
+          {/* Frame 1: High Lunge stance */}
+          <div style={f1}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="85" x2="90" y2="85" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              <circle cx="50" cy="32" r="6" fill="#ffffff" />
+              <line x1="50" y1="38" x2="50" y2="68" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              {/* Front Leg */}
+              <path d="M 35 85 L 35 65 L 50 68" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Back Leg */}
+              <path d="M 75 85 L 65 75 L 50 68" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          {/* Frame 2: Low Lunge */}
+          <div style={f2}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="85" x2="90" y2="85" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              <circle cx="45" cy="38" r="6" fill="#ffffff" />
+              <line x1="45" y1="44" x2="45" y2="74" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              {/* Front Leg lower */}
+              <path d="M 35 85 L 38 72 L 45 74" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Back Leg resting knee */}
+              <path d="M 76 85 L 62 85 L 45 74" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          {/* Frame 3: Deep Lunge + Arm Reach */}
+          <div style={f3}>
+            <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+              <line x1="10" y1="85" x2="90" y2="85" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+              <circle cx="45" cy="38" r="6" fill="#ffffff" />
+              <line x1="45" y1="44" x2="45" y2="74" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 35 85 L 38 72 L 45 74" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M 76 85 L 62 85 L 45 74" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Arms Reaching Up */}
+              <line x1="45" y1="44" x2="40" y2="25" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+              {/* Glowing hip area */}
+              <g style={{ transformOrigin: '46px 76px', animation: 'pulseTarget 1.2s infinite ease-in-out' }}>
+                <circle cx="46" cy="76" r="5" fill="var(--accent-red)" />
+              </g>
+            </svg>
+          </div>
+        </>
+      )}
     </div>
   );
 }

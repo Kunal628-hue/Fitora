@@ -37,7 +37,7 @@ export const EXERCISE_GUIDES = {
     ]
   },
   'lateral raises': {
-    animation: 'curl',
+    animation: 'lateral',
     muscles: ['Lateral Deltoids (Side Shoulders)'],
     breathing: 'Exhale as you raise the weights, inhale as you lower them slowly.',
     steps: [
@@ -234,7 +234,7 @@ export const EXERCISE_GUIDES = {
     ]
   },
   'hamstring curls': {
-    animation: 'squat',
+    animation: 'legcurl',
     muscles: ['Hamstrings (Biceps Femoris)'],
     breathing: 'Exhale as you curl your legs, inhale as you return to starting position.',
     steps: [
@@ -245,7 +245,7 @@ export const EXERCISE_GUIDES = {
     ]
   },
   'standing calf raises': {
-    animation: 'squat',
+    animation: 'calf',
     muscles: ['Calves (Gastrocnemius, Soleus)'],
     breathing: 'Exhale at the top of the raise, inhale as you lower your heels.',
     steps: [
@@ -256,7 +256,7 @@ export const EXERCISE_GUIDES = {
     ]
   },
   'decompression hangs': {
-    animation: 'stretch',
+    animation: 'hang',
     muscles: ['Spine Decompression', 'Lats', 'Forearms'],
     breathing: 'Breathe slowly and deeply, letting all muscle tension dissolve.',
     steps: [
@@ -267,7 +267,7 @@ export const EXERCISE_GUIDES = {
     ]
   },
   'hip opener flow': {
-    animation: 'stretch',
+    animation: 'stretch_lunge',
     muscles: ['Hips', 'Glutes', 'Groin'],
     breathing: 'Slow, deep breaths. Exhale as you sink deeper into each pose.',
     steps: [
