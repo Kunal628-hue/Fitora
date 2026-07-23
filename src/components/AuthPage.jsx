@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
 import { checkRateLimit, recordAuthFailure, recordAuthSuccess } from '../utils/rateLimiter';
 import { validateAuthForm } from '../utils/validation';
+import { sanitizeErrorMessage } from '../utils/errorSanitizer';
 
 // Gym motivational quotes
 const GYM_QUOTES = [
@@ -240,7 +241,7 @@ function LoginScreen({ onSwitch, onReset, onLogin }) {
     setLoading(false);
     if (err) {
       const waitSecs = recordAuthFailure(sanitizedEmail);
-      setError(`${err.message} (Exponential backoff penalty: ${waitSecs}s)`);
+      setError(`${sanitizeErrorMessage(err, null, 'AUTH')} (Exponential backoff penalty: ${waitSecs}s)`);
     } else if (data?.user) {
       recordAuthSuccess(sanitizedEmail);
       onLogin({
@@ -272,7 +273,7 @@ function LoginScreen({ onSwitch, onReset, onLogin }) {
     });
     if (err) {
       recordAuthFailure();
-      setError(err.message);
+      setError(sanitizeErrorMessage(err, null, 'AUTH'));
     }
   };
 
@@ -411,7 +412,7 @@ function ResetPasswordScreen({ onSwitchToLogin }) {
     setLoading(false);
     if (err) {
       const waitSecs = recordAuthFailure(sanitizedEmail);
-      setError(`${err.message} (Backoff penalty: ${waitSecs}s)`);
+      setError(`${sanitizeErrorMessage(err, null, 'AUTH')} (Backoff penalty: ${waitSecs}s)`);
     } else {
       recordAuthSuccess(sanitizedEmail);
       setSuccess('Password reset instructions have been sent to your email.');
@@ -546,7 +547,7 @@ function SignupScreen({ onSwitch, onLogin }) {
     setLoading(false);
     if (err) {
       const waitSecs = recordAuthFailure(sanitizedEmail);
-      setError(`${err.message} (Backoff penalty: ${waitSecs}s)`);
+      setError(`${sanitizeErrorMessage(err, null, 'AUTH')} (Backoff penalty: ${waitSecs}s)`);
     } else if (data?.session) {
       recordAuthSuccess(sanitizedEmail);
       onLogin({ email: sanitizedEmail, name: name.trim() });
@@ -578,7 +579,7 @@ function SignupScreen({ onSwitch, onLogin }) {
     });
     if (err) {
       recordAuthFailure();
-      setError(err.message);
+      setError(sanitizeErrorMessage(err, null, 'AUTH'));
     }
   };
 

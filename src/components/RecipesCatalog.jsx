@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { RECIPES_CATALOG } from '../data/recipesData';
 import { generateAiRecipe } from '../utils/ai';
 import { validateInput } from '../utils/validation';
+import { sanitizeErrorMessage } from '../utils/errorSanitizer';
 
 import ribeyeSteakBowl from '../assets/recipes/ribeye_steak_bowl.png';
 import glazedSalmonDish from '../assets/recipes/glazed_salmon_dish.png';
@@ -154,8 +155,8 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
         throw new Error("AI did not return a valid list of recipes. Please try again.");
       }
     } catch (err) {
-      console.error(err);
-      setErrorMsg(err.message || "Failed to generate AI recipes. Please check your network and API settings.");
+      const safeMsg = sanitizeErrorMessage(err, 'Failed to generate AI recipes. Please check your network and API settings.', 'AI');
+      setErrorMsg(safeMsg);
     } finally {
       setIsLoading(false);
     }

@@ -16,6 +16,7 @@ import { sendWelcomeEmail } from './utils/emailService';
 import { translations, contentTranslations } from './utils/translations';
 import { checkRateLimit } from './utils/rateLimiter';
 import { validateProfile, validateInput } from './utils/validation';
+import { sanitizeErrorMessage } from './utils/errorSanitizer';
 
 export default function App() {
   // Auth state
@@ -112,7 +113,7 @@ export default function App() {
   useEffect(() => {
     const stored = localStorage.getItem('fitora_user');
     if (stored) {
-      try { setCurrentUser(JSON.parse(stored)); } catch (_) {}
+      try { setCurrentUser(JSON.parse(stored)); } catch {}
     }
     setAuthChecked(true);
   }, []);
@@ -338,7 +339,7 @@ export default function App() {
             cloudData = data;
           }
         } catch (err) {
-          console.error("Error loading user data from Supabase:", err);
+          sanitizeErrorMessage(err, null, 'DATABASE');
         }
       }
 
@@ -445,7 +446,7 @@ export default function App() {
               daily_notes: loadedNotes
             });
         } catch (err) {
-          console.error("Failed to initialize cloud database with local data:", err);
+          sanitizeErrorMessage(err, null, 'DATABASE');
         }
       }
 
@@ -541,7 +542,7 @@ export default function App() {
             daily_notes: dailyNotes
           });
       } catch (err) {
-        console.error("Auto-sync to Supabase failed:", err);
+        sanitizeErrorMessage(err, null, 'DATABASE');
       }
     }, 1500);
 
@@ -717,7 +718,7 @@ export default function App() {
           language
         });
       } catch (err) {
-        console.error(err);
+        sanitizeErrorMessage(err, null, 'AI');
         showToast('AI Plan generation failed. Using local fallback.');
       }
     }
@@ -822,7 +823,7 @@ export default function App() {
           language
         });
       } catch (err) {
-        console.error(err);
+        sanitizeErrorMessage(err, null, 'AI');
         showToast('AI Swap failed. Using local database swap.');
       }
     }

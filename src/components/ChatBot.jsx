@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { askChatBotAi } from '../utils/ai';
 import { translations } from '../utils/translations';
 import { validateInput } from '../utils/validation';
+import { sanitizeErrorMessage } from '../utils/errorSanitizer';
 
 export default function ChatBot({ profileContext, apiKey, provider, model, showConfirm, language = 'en' }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,14 +41,17 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
   }, [messages, isOpen]);
 
   useEffect(() => {
-    if (messages.length === 1 && messages[0].role === 'assistant') {
-      setMessages([
-        {
-          role: 'assistant',
-          content: language === 'hi' ? "नमस्ते! मैं आपका फिटोरा एआई कोच हूँ। अपनी आहार योजना, सामग्री, व्यायाम या स्वास्थ्य लक्ष्यों के बारे में कुछ भी पूछें!" : language === 'te' ? "హలో! నేను మీ ఫిటోరా AI కోచ్. మీ డైట్ ప్లాన్, కావలసినవి, వర్కౌట్లు లేదా సాధారణ ఆరోగ్య లక్ష్యాల గురించి ఏదైనా అడగండి!" : "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
-        }
-      ]);
-    }
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].role === 'assistant') {
+        return [
+          {
+            role: 'assistant',
+            content: language === 'hi' ? "नमस्ते! मैं आपका फिटोरा एआई कोच हूँ। अपनी आहार योजना, सामग्री, व्यायाम या स्वास्थ्य लक्ष्यों के बारे में कुछ भी पूछें!" : language === 'te' ? "హలో! నేను మీ ఫిటోరా AI కోచ్. మీ డైట్ ప్లాన్, కావలసినవి, వర్కౌట్లు లేదా సాధారణ ఆరోగ్య లక్ష్యాల గురించి ఏదైనా అడగండి!" : "Hello! I'm your Fitora AI coach. Ask me anything about your diet plan, ingredients, workouts, or general health goals!"
+          }
+        ];
+      }
+      return prev;
+    });
   }, [language]);
 
   const handleClear = async () => {
@@ -99,10 +103,10 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
 
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      console.error(err);
+      const safeMsg = sanitizeErrorMessage(err, 'Something went wrong. Please check your network or API Settings.', 'AI');
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: `Error: ${err.message || 'Something went wrong. Please check your network or API Settings.'}` }
+        { role: 'assistant', content: `Error: ${safeMsg}` }
       ]);
     } finally {
       setLoading(false);
