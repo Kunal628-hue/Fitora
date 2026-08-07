@@ -1001,3 +1001,21 @@ export const MEAL_TEMPLATES = {
     }
   ]
 };
+
+export const buildDefaultWeeklyDietPlan = (pref = 'veg', targetCals = 3037) => {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const bList = (MEAL_TEMPLATES.breakfast || []).filter(m => m.diets.includes(pref) || m.diets.includes('veg'));
+  const lList = (MEAL_TEMPLATES.lunch || []).filter(m => m.diets.includes(pref) || m.diets.includes('veg'));
+  const sList = (MEAL_TEMPLATES.snack || []).filter(m => m.diets.includes(pref) || m.diets.includes('veg'));
+  const dList = (MEAL_TEMPLATES.dinner || []).filter(m => m.diets.includes(pref) || m.diets.includes('veg'));
+
+  return days.map((day, idx) => ({
+    day,
+    meals: [
+      { slot: 'breakfast', meal: bList[idx % bList.length] || MEAL_TEMPLATES.breakfast[0], targetCalories: Math.round(targetCals * 0.25) },
+      { slot: 'lunch', meal: lList[idx % lList.length] || MEAL_TEMPLATES.lunch[0], targetCalories: Math.round(targetCals * 0.35) },
+      { slot: 'snack', meal: sList[idx % sList.length] || MEAL_TEMPLATES.snack[0], targetCalories: Math.round(targetCals * 0.15) },
+      { slot: 'dinner', meal: dList[idx % dList.length] || MEAL_TEMPLATES.dinner[0], targetCalories: Math.round(targetCals * 0.25) },
+    ]
+  }));
+};

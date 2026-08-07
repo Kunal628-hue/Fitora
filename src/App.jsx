@@ -4,7 +4,7 @@ import DynamicChart from './components/DynamicChart';
 import RecipeModal from './components/RecipeModal';
 import RoutineBrowser from './components/RoutineBrowser';
 import ActiveWorkout from './components/ActiveWorkout';
-import { MEAL_TEMPLATES } from './data/meals';
+import { MEAL_TEMPLATES, buildDefaultWeeklyDietPlan } from './data/meals';
 import { WORKOUT_ROUTINES } from './data/workoutData';
 import RecipesCatalog from './components/RecipesCatalog';
 import { calculateBMR, calculateTDEE } from './utils/nutrition';
@@ -457,35 +457,40 @@ export default function App() {
           loadedProfile.height = loadedHeight;
         }
 
-        setAge(loadedProfile.age || '');
-        setWeight(loadedProfile.weight || '');
-        setHeight(loadedHeight || '');
-        setSteps(loadedProfile.steps || '');
-        setSleep(loadedProfile.sleep || '');
+        setAge(loadedProfile.age || '25');
+        setWeight(loadedProfile.weight || '70');
+        setHeight(loadedHeight || '5.9');
+        setSteps(loadedProfile.steps || '8000');
+        setSleep(loadedProfile.sleep || '8');
         setPreference(loadedProfile.preference || 'veg');
         setExtraPreferences(loadedProfile.extraPreferences || '');
         setGoal(loadedProfile.goal || 'bulk');
 
-        setCalorieTarget(loadedProfile.calorieTarget || 0);
-        setProteinTarget(loadedProfile.proteinTarget || 0);
-        setCarbTarget(loadedProfile.carbTarget || 0);
-        setFatTarget(loadedProfile.fatTarget || 0);
+        setCalorieTarget(loadedProfile.calorieTarget || 3037);
+        setProteinTarget(loadedProfile.proteinTarget || 304);
+        setCarbTarget(loadedProfile.carbTarget || 304);
+        setFatTarget(loadedProfile.fatTarget || 67);
       } else {
-        setAge('');
-        setWeight('');
-        setHeight('');
-        setSteps('');
-        setSleep('');
+        setAge('25');
+        setWeight('70');
+        setHeight('5.9');
+        setSteps('8000');
+        setSleep('8');
         setPreference('veg');
         setExtraPreferences('');
         setGoal('bulk');
-        setCalorieTarget(0);
-        setProteinTarget(0);
-        setCarbTarget(0);
-        setFatTarget(0);
+        setCalorieTarget(3037);
+        setProteinTarget(304);
+        setCarbTarget(304);
+        setFatTarget(67);
       }
 
-      setWeeklyDietPlan(loadedDiet);
+      // If no diet plan exists yet, populate rich default 7-day plan
+      const finalDietPlan = (loadedDiet && loadedDiet.length > 0) 
+        ? loadedDiet 
+        : buildDefaultWeeklyDietPlan('veg', 3037);
+
+      setWeeklyDietPlan(finalDietPlan);
       setWeeklyWorkoutPlan(loadedWorkout);
       setLoggedDays(loadedLoggedDays);
       setWorkoutStreak(loadedStreak);
@@ -1398,7 +1403,7 @@ export default function App() {
 
 
               {/* Extra Preferences */}
-              <div className="form-input-group" style={{ gridColumn: 'span 2' }}>
+              <div className="form-input-group">
                 <label htmlFor="extraPreferences">{t('allergiesLabel')}</label>
                 <input
                   type="text"
@@ -1411,37 +1416,102 @@ export default function App() {
               </div>
             </div>
 
-            {/* Centered Generate Button */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem', width: '100%' }}>
+            {/* Full Width Primary CTA */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.25rem', width: '100%' }}>
               <button 
                 type="button" 
                 className="btn btn-primary" 
-                style={{ width: '100%', maxWidth: '360px', minHeight: '44px', background: 'var(--accent-coral)', color: '#000000', fontWeight: 700 }}
+                style={{ 
+                  width: '100%', 
+                  minHeight: '46px', 
+                  background: 'var(--accent-coral)', 
+                  color: '#000000', 
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.05em',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 20px rgba(200, 255, 0, 0.25)'
+                }}
                 onClick={handleGeneratePlan}
                 id="generate-plan-btn"
               >
-                {isGenerating ? t('generating') : t('generatePlan')}
+                {isGenerating ? t('generating') : (t('generatePlan') || 'Generate My Plan').toUpperCase()}
               </button>
             </div>
           </section>
 
-          {/* Targets Strip Row (Design 2 target bar) */}
-          <section className="targets-strip-card" aria-label="Nutritional Target Values">
-            <div className="target-strip-item">
-              <span className="target-strip-label">{t('calorieTarget')}</span>
-              <span className="target-strip-value">{calorieTarget}</span>
+          {/* Targets Strip Card - Professional Dark Gym Theme */}
+          <section className="targets-strip-card" aria-label="Nutritional Target Overview">
+            <div className="macro-dashboard-grid">
+              {/* Calorie Card */}
+              <div className="target-card-box calories-card">
+                <div className="target-card-header">
+                  <span className="target-card-icon">⚡</span>
+                  <span className="target-strip-label">{t('calorieTarget')}</span>
+                </div>
+                <div className="target-strip-value">
+                  {calorieTarget} <span className="target-strip-unit">kcal</span>
+                </div>
+              </div>
+
+              {/* Protein Card */}
+              <div className="target-card-box protein-card">
+                <div className="target-card-header">
+                  <span className="target-card-dot" />
+                  <span className="target-strip-label">{t('protein')}</span>
+                </div>
+                <div className="target-strip-value">
+                  {proteinTarget}<span className="target-strip-unit">g</span>
+                </div>
+              </div>
+
+              {/* Carbs Card */}
+              <div className="target-card-box carbs-card">
+                <div className="target-card-header">
+                  <span className="target-card-dot" />
+                  <span className="target-strip-label">{t('carbs')}</span>
+                </div>
+                <div className="target-strip-value">
+                  {carbTarget}<span className="target-strip-unit">g</span>
+                </div>
+              </div>
+
+              {/* Fats Card */}
+              <div className="target-card-box fats-card">
+                <div className="target-card-header">
+                  <span className="target-card-dot" />
+                  <span className="target-strip-label">{t('fats')}</span>
+                </div>
+                <div className="target-strip-value">
+                  {fatTarget}<span className="target-strip-unit">g</span>
+                </div>
+              </div>
             </div>
-            <div className="target-strip-item">
-              <span className="target-strip-label">{t('protein')}</span>
-              <span className="target-strip-value">{proteinTarget}<span className="target-strip-unit">g</span></span>
-            </div>
-            <div className="target-strip-item">
-              <span className="target-strip-label">{t('carbs')}</span>
-              <span className="target-strip-value">{carbTarget}<span className="target-strip-unit">g</span></span>
-            </div>
-            <div className="target-strip-item">
-              <span className="target-strip-label">{t('fats')}</span>
-              <span className="target-strip-value">{fatTarget}<span className="target-strip-unit">g</span></span>
+
+            {/* Macro Distribution Ratio Progress Bar */}
+            <div className="macro-ratio-bar-container">
+              <div className="macro-ratio-bar">
+                <div 
+                  className="macro-bar-segment segment-protein" 
+                  style={{ width: `${Math.round((proteinTarget * 4 / Math.max(1, calorieTarget)) * 100)}%` }} 
+                  title={`Protein (${Math.round((proteinTarget * 4 / Math.max(1, calorieTarget)) * 100)}%)`}
+                />
+                <div 
+                  className="macro-bar-segment segment-carbs" 
+                  style={{ width: `${Math.round((carbTarget * 4 / Math.max(1, calorieTarget)) * 100)}%` }} 
+                  title={`Carbs (${Math.round((carbTarget * 4 / Math.max(1, calorieTarget)) * 100)}%)`}
+                />
+                <div 
+                  className="macro-bar-segment segment-fats" 
+                  style={{ width: `${Math.round((fatTarget * 9 / Math.max(1, calorieTarget)) * 100)}%` }} 
+                  title={`Fats (${Math.round((fatTarget * 9 / Math.max(1, calorieTarget)) * 100)}%)`}
+                />
+              </div>
+              <div className="macro-ratio-legend">
+                <span className="legend-item"><span className="legend-dot" /> {Math.round((proteinTarget * 4 / Math.max(1, calorieTarget)) * 100)}% Protein</span>
+                <span className="legend-item"><span className="legend-dot" /> {Math.round((carbTarget * 4 / Math.max(1, calorieTarget)) * 100)}% Carbs</span>
+                <span className="legend-item"><span className="legend-dot" /> {Math.round((fatTarget * 9 / Math.max(1, calorieTarget)) * 100)}% Fats</span>
+              </div>
             </div>
           </section>
 
@@ -1456,26 +1526,14 @@ export default function App() {
                   key={idx}
                   type="button"
                   onClick={() => setSelectedDayIndex(idx)}
-                  className={`weekday-btn ${isActive ? 'active' : ''}`}
+                  className={`weekday-btn ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
                   id={`db-day-select-${idx}`}
                 >
                   <span className="weekday-name">{dayName}</span>
                   <span className="weekday-num">{dayNumber}</span>
                   {isActive && <div className="weekday-indicator" />}
                   {isCompleted && (
-                    <span 
-                      style={{ 
-                        position: 'absolute', 
-                        top: '4px', 
-                        right: '4px', 
-                        color: 'var(--accent-coral)', 
-                        fontSize: '0.65rem',
-                        fontWeight: 'bold' 
-                      }}
-                      title="Workout Completed"
-                    >
-                      ✓
-                    </span>
+                    <span className="weekday-check-badge" title="Day Plan Logged">✓</span>
                   )}
                 </button>
               );
@@ -1724,9 +1782,9 @@ export default function App() {
                 Macro Ratio
               </h3>
               <DynamicChart 
-                proteinPct={40} 
-                carbPct={40} 
-                fatPct={20} 
+                proteinPct={Math.round(((proteinTarget || 304) * 4 / Math.max(1, calorieTarget || 3037)) * 100)} 
+                carbPct={Math.round(((carbTarget || 304) * 4 / Math.max(1, calorieTarget || 3037)) * 100)} 
+                fatPct={Math.round(((fatTarget || 67) * 9 / Math.max(1, calorieTarget || 3037)) * 100)} 
               />
               <div style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--text-muted)', textAlign: 'center', marginTop: '1rem' }}>
                 Optimize for hypertrophy

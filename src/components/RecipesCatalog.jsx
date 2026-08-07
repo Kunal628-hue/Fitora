@@ -212,13 +212,13 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
         }
       `}</style>
 
-      {/* Title Header */}
+      {/* Hero Section */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1' }}>
-          {t('fuelYour') || "Fuel Your"} <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 15px rgba(200, 255, 0, 0.20)' }}>{t('engine') || "Engine"}</span>
+        <h1 style={{ fontSize: '3.2rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1.05', letterSpacing: '-0.02em', color: '#ffffff' }}>
+          FUEL YOUR <span style={{ color: 'var(--accent-coral)', textShadow: '0 0 20px rgba(200, 255, 0, 0.25)' }}>ENGINE</span>
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginTop: '0.75rem', maxWidth: '700px' }}>
-          {t('precisionNutritionDesc') || "Precision nutrition for high-intensity training. Every macro accounted for. Every calorie optimized for performance."}
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginTop: '0.65rem', maxWidth: '680px', fontWeight: '500' }}>
+          {t('precisionNutritionDesc') || "Precision nutrition for high-intensity performance. High-protein recipes crafted for muscle growth, rapid recovery, and energy."}
         </p>
       </div>
 
@@ -232,13 +232,13 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
           gap: '1rem',
           padding: '1.25rem',
           borderRadius: '16px',
-          background: 'rgba(20, 22, 30, 0.6)',
+          background: 'rgba(13, 16, 24, 0.85)',
           border: '1px solid var(--glass-border)',
-          marginBottom: '2rem',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
+          marginBottom: '2.5rem',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35)'
         }}
       >
-        <div style={{ flex: 1, minWidth: '280px' }}>
+        <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
           <input
             type="text"
             placeholder={t('searchRecipesPlaceholder') || "Search healthy meals..."}
@@ -252,9 +252,9 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
             }}
             style={{
               width: '100%',
-              padding: '0.75rem 1.25rem',
+              padding: '0.75rem 1.25rem 0.75rem 2.6rem',
               borderRadius: '30px',
-              border: '1px solid var(--glass-border)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               background: 'rgba(255, 255, 255, 0.03)',
               color: '#ffffff',
               fontSize: '0.95rem',
@@ -262,11 +262,15 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
               transition: 'border-color 0.2s ease'
             }}
           />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }}>
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
         </div>
 
         {/* Diet Selector Toggle Switch */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{t('diet') || "Diet:"}</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('diet') || "DIET:"}</span>
           <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '30px', padding: '0.2rem', border: '1px solid var(--glass-border)' }}>
             <button
               type="button"
@@ -280,11 +284,11 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
                 borderRadius: '20px',
                 border: 'none',
                 fontSize: '0.8rem',
-                fontWeight: '700',
+                fontWeight: '800',
                 cursor: 'pointer',
                 background: dietType === 'veg' ? 'var(--accent-coral)' : 'transparent',
                 color: dietType === 'veg' ? '#000000' : 'var(--text-secondary)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                transition: 'all 0.25s ease'
               }}
             >
               {t('veg')}
@@ -301,11 +305,11 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
                 borderRadius: '20px',
                 border: 'none',
                 fontSize: '0.8rem',
-                fontWeight: '700',
+                fontWeight: '800',
                 cursor: 'pointer',
                 background: dietType === 'non' ? 'var(--accent-coral)' : 'transparent',
                 color: dietType === 'non' ? '#000000' : 'var(--text-secondary)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                transition: 'all 0.25s ease'
               }}
             >
               {t('nonVeg')}
@@ -313,6 +317,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
           </div>
         </div>
 
+        {/* Ask AI Button */}
         <button
           type="submit"
           className="btn btn-primary"
@@ -322,15 +327,19 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
             padding: '0.75rem 2rem',
             background: 'var(--accent-coral)',
             color: '#000000',
-            fontWeight: '700',
+            fontWeight: '800',
+            fontSize: '0.85rem',
+            letterSpacing: '0.04em',
             border: 'none',
             cursor: searchQuery.trim() ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
             transition: 'opacity 0.2s ease',
-            opacity: searchQuery.trim() ? 1 : 0.5
+            opacity: searchQuery.trim() ? 1 : 0.5,
+            boxShadow: '0 4px 16px rgba(200, 255, 0, 0.2)'
           }}
+          id="ask-ai-recipe-btn"
         >
           {isLoading ? (
             <>
@@ -367,11 +376,11 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
         </div>
       )}
 
-      {/* Recipes Cards Grid */}
+      {/* 3-Column Recipe Grid */}
       <div 
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))',
           gap: '2rem',
           marginBottom: '3rem'
         }}
@@ -385,24 +394,24 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
               padding: 0,
               borderRadius: '16px',
               overflow: 'hidden',
-              background: '#11131a',
+              background: '#090a0e',
               border: '1px dashed rgba(255, 255, 255, 0.15)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: '430px'
+              minHeight: '440px'
             }}
           >
             <div style={{ flex: 1 }}>
               <div 
                 style={{ 
-                  height: '220px', 
+                  height: '200px', 
                   background: 'linear-gradient(90deg, #161822 25%, #222533 50%, #161822 75%)', 
                   backgroundSize: '200% 100%',
                   animation: 'shimmer 1.5s infinite linear' 
                 }} 
               />
-              <div style={{ padding: '1.75rem' }}>
+              <div style={{ padding: '1.5rem' }}>
                 <div style={{ height: '12px', width: '80px', borderRadius: '4px', background: '#1c1e2d', marginBottom: '0.75rem', animation: 'pulse 1.2s infinite ease-in-out' }} />
                 <div style={{ height: '24px', width: '180px', borderRadius: '4px', background: '#1c1e2d', marginBottom: '1.25rem', animation: 'pulse 1.2s infinite ease-in-out' }} />
                 <div style={{ display: 'flex', gap: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '1.25rem' }}>
@@ -412,8 +421,8 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
                 </div>
               </div>
             </div>
-            <div style={{ padding: '0 1.75rem 1.75rem 1.75rem' }}>
-              <div style={{ height: '36px', borderRadius: '4px', background: '#1c1e2d', animation: 'pulse 1.2s infinite ease-in-out' }} />
+            <div style={{ padding: '0 1.5rem 1.5rem 1.5rem' }}>
+              <div style={{ height: '40px', borderRadius: '8px', background: '#1c1e2d', animation: 'pulse 1.2s infinite ease-in-out' }} />
             </div>
           </div>
         )}
@@ -423,110 +432,150 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
           return (
             <div 
               key={recipe.id}
-              className="glass-panel glass-panel-hover"
+              className="pro-recipe-card"
               style={{
                 padding: 0,
                 borderRadius: '16px',
                 overflow: 'hidden',
-                background: '#11131a',
-                border: isDirectMatch ? '1px solid var(--accent-coral)' : '1px solid var(--glass-border)',
+                background: 'rgba(13, 16, 24, 0.9)',
+                border: isDirectMatch ? '1.5px solid var(--accent-coral)' : '1px solid var(--glass-border)',
                 boxShadow: isDirectMatch ? '0 0 15px rgba(200, 255, 0, 0.15)' : 'none',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                transition: 'all 0.3s ease'
+                minHeight: '440px',
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.borderColor = 'rgba(200, 255, 0, 0.3)';
+                e.currentTarget.style.boxShadow = '0 16px 36px rgba(0,0,0,0.5), 0 0 15px rgba(200, 255, 0, 0.12)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = isDirectMatch ? 'var(--accent-coral)' : 'var(--glass-border)';
+                e.currentTarget.style.boxShadow = isDirectMatch ? '0 0 15px rgba(200, 255, 0, 0.15)' : 'none';
               }}
             >
-              <div>
-                {/* Graphic Food Image */}
-                <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {/* Full-bleed Photo Top with Gradient Overlay */}
+                <div style={{ position: 'relative', overflow: 'hidden', height: '200px', flexShrink: 0 }}>
                   {renderRecipeImage(recipe)}
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(to top, rgba(13, 16, 24, 0.95) 0%, rgba(13, 16, 24, 0.3) 50%, transparent 100%)',
+                      pointerEvents: 'none'
+                    }} 
+                  />
                   {isDirectMatch && (
                     <span 
                       style={{
                         position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
+                        top: '0.85rem',
+                        right: '0.85rem',
                         background: 'var(--accent-coral)',
                         color: '#000000',
                         fontSize: '0.65rem',
                         fontWeight: '900',
-                        padding: '0.25rem 0.5rem',
+                        padding: '0.25rem 0.55rem',
                         borderRadius: '4px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+                        zIndex: 2
                       }}
                     >
-                      Search Match
+                      MATCH
                     </span>
                   )}
                 </div>
 
-                {/* Card content details */}
-                <div style={{ padding: '1.75rem' }}>
-                  <span 
-                    style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '800', 
-                      color: 'var(--accent-coral)', 
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      display: 'block',
-                      marginBottom: '0.5rem' 
-                    }}
-                  >
-                    {translateContent(recipe.tag)}
-                  </span>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#ffffff', marginBottom: '1.25rem', lineHeight: '1.2' }}>
-                    {translateContent(recipe.name)}
-                  </h3>
+                {/* Card Content Details */}
+                <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    {/* Lime Category Tag */}
+                    <span 
+                      style={{ 
+                        fontSize: '0.72rem', 
+                        fontWeight: '800', 
+                        color: 'var(--accent-coral)', 
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        display: 'block',
+                        marginBottom: '0.4rem' 
+                      }}
+                    >
+                      {translateContent(recipe.tag)}
+                    </span>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', marginBottom: '1rem', lineHeight: '1.25' }}>
+                      {translateContent(recipe.name)}
+                    </h3>
+                  </div>
 
-                  {/* Macros Row */}
+                  {/* P/C/F Macro Row */}
                   <div 
                     style={{ 
                       display: 'flex', 
-                      borderTop: '1px solid rgba(255, 255, 255, 0.05)', 
-                      paddingTop: '1.25rem', 
-                      gap: '1.5rem' 
+                      borderTop: '1px solid rgba(255, 255, 255, 0.06)', 
+                      paddingTop: '1rem', 
+                      gap: '1.25rem',
+                      alignItems: 'center'
                     }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('proteinAbbr') || "Prot"}</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--color-protein)' }}>{recipe.macros.protein}g</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('proteinAbbr') || "PROTEIN"}</span>
+                      <span style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--accent-coral)' }}>{recipe.macros.protein}g</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('carbsAbbr') || "Carb"}</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>{recipe.macros.carbs}g</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('carbsAbbr') || "CARBS"}</span>
+                      <span style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff' }}>{recipe.macros.carbs}g</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('fatsAbbr') || "Fat"}</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff' }}>{recipe.macros.fat}g</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('fatsAbbr') || "FATS"}</span>
+                      <span style={{ fontSize: '1.05rem', fontWeight: '800', color: 'rgba(255, 255, 255, 0.7)' }}>{recipe.macros.fat}g</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* View Recipe Button */}
-              <div style={{ padding: '0 1.75rem 1.75rem 1.75rem' }}>
+              {/* Full-width View Details Button */}
+              <div style={{ padding: '0 1.5rem 1.5rem 1.5rem' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => onViewDetails(recipe)}
                   style={{
                     width: '100%',
-                    background: 'transparent',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    padding: '0.65rem 1rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
                     color: 'var(--accent-coral)',
-                    cursor: 'pointer'
+                    fontWeight: '800',
+                    fontSize: '0.82rem',
+                    letterSpacing: '0.04em',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'var(--accent-coral)';
+                    e.currentTarget.style.color = '#000000';
+                    e.currentTarget.style.borderColor = 'var(--accent-coral)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.color = 'var(--accent-coral)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                   }}
                   id={`recipe-view-btn-${recipe.id}`}
                 >
-                  {t('viewDetailsBtn') || "View Recipe"} <span style={{ transition: 'transform 0.2s ease' }} className="arrow">→</span>
+                  {t('viewDetailsBtn') || "View Details"} <span style={{ transition: 'transform 0.2s ease' }}>→</span>
                 </button>
               </div>
             </div>

@@ -733,7 +733,7 @@ export default function RoutineBrowser({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add' | 'edit'
   const [editingExIdx, setEditingExIdx] = useState(null);
-  const [expandedIndex, setExpandedIndex] = useState(null);
+  const [expandedIndex, setExpandedIndex] = useState(0);
 
   // Form Fields State
   const [exName, setExName] = useState('');
@@ -796,17 +796,17 @@ export default function RoutineBrowser({
 
   return (
     <div className="step-container" style={{ margin: '1rem 0' }}>
-      {/* Title Header */}
+      {/* Page Header */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1.1' }}>
-          My Routine
+        <h1 style={{ fontSize: '3rem', fontWeight: '900', textTransform: 'uppercase', lineHeight: '1.1', color: '#ffffff', letterSpacing: '-0.02em' }}>
+          MY ROUTINE
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '0.25rem' }}>
-          Peak intensity is the only standard. Stay disciplined.
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '0.35rem' }}>
+          Push your limits. Track your progression and master your form.
         </p>
       </div>
 
-      {/* Weekday Selector Row */}
+      {/* Weekday Selector Row (Sticky on Scroll) */}
       <div className="weekday-grid">
         {routines.map((routine, idx) => {
           const isActive = selectedDayIndex === idx;
@@ -817,7 +817,7 @@ export default function RoutineBrowser({
               type="button"
               onClick={() => {
                 onSelectDay(idx);
-                setExpandedIndex(null);
+                setExpandedIndex(0);
               }}
               className={`weekday-btn ${isActive ? 'active' : ''}`}
               id={`routine-day-select-${idx}`}
@@ -863,42 +863,36 @@ export default function RoutineBrowser({
             </span>
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-primary"
               style={{
-                border: '1.5px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.03)',
-                color: '#ffffff',
-                minHeight: '44px',
+                background: 'var(--accent-coral)',
+                color: '#000000',
+                border: 'none',
+                minHeight: '42px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
                 borderRadius: '8px',
                 fontSize: '0.82rem',
-                fontWeight: '700',
+                fontWeight: '800',
                 padding: '0 1.2rem',
                 cursor: 'pointer',
-                transition: 'background 0.2s, border-color 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                boxShadow: '0 4px 16px rgba(200, 255, 0, 0.2)',
+                transition: 'all 0.2s ease',
               }}
               onClick={handleOpenAdd}
+              id="add-exercise-btn"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              {t('addExercise')}
+              + {t('addExercise')}
             </button>
           </div>
         </div>
 
-        {/* Exercises List */}
+        {/* Exercises List (Vertical Stack) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {currentRoutine.exercises.map((ex, idx) => {
             const isExpanded = expandedIndex === idx;
@@ -918,19 +912,19 @@ export default function RoutineBrowser({
                 onClick={() => setExpandedIndex(isExpanded ? null : idx)}
                 style={{
                   background: '#090a0e',
-                  border: isExpanded ? '1.5px solid var(--accent-red)' : '1px solid var(--glass-border)',
+                  border: isExpanded ? '1.5px solid var(--accent-coral)' : '1px solid var(--glass-border)',
                   borderRadius: '12px',
                   padding: '1.25rem 1.5rem',
                   display: 'flex',
                   flexDirection: 'column',
                   cursor: 'pointer',
-                  transition: 'border-color 0.2s, background 0.2s',
+                  transition: 'border-color 0.2s, background 0.2s, transform 0.2s',
                   boxShadow: isExpanded ? '0 10px 30px rgba(0,0,0,0.4), 0 0 15px rgba(200, 255, 0, 0.15)' : 'none'
                 }}
                 onMouseEnter={e => {
                   if (!isExpanded) {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                    e.currentTarget.style.borderColor = 'rgba(200, 255, 0, 0.25)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.015)';
                   }
                 }}
                 onMouseLeave={e => {
@@ -957,25 +951,55 @@ export default function RoutineBrowser({
                       }}
                     >
                        <span style={{ transform: 'rotate(-45deg)', display: 'inline-flex', alignItems: 'center' }}>
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ color: 'var(--accent-red)' }}><path d="M20.5 11H19V7h-2v4H7V7H5v4H3.5C2.67 11 2 11.67 2 12.5S2.67 14 3.5 14H5v4h2v-4h10v4h2v-4h1.5c.83 0 1.5-.67 1.5-1.5S21.33 11 20.5 11z"/></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ color: 'var(--accent-coral)' }}><path d="M20.5 11H19V7h-2v4H7V7H5v4H3.5C2.67 11 2 11.67 2 12.5S2.67 14 3.5 14H5v4h2v-4h10v4h2v-4h1.5c.83 0 1.5-.67 1.5-1.5S21.33 11 20.5 11z"/></svg>
                        </span>
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
                         {translateContent(ex.name)}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                       </h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.1rem' }}>
-                        {ex.sets} {t('sets').toUpperCase()} X {ex.reps} {t('reps').toUpperCase()}
-                      </p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      <span>{t('rest')}: {ex.rest}</span>
-                      <span style={{ color: 'var(--accent-coral)' }}>{t('rpe')} {ex.rpe}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    {/* Badge Chips for Sets x Reps, Rest, RPE */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ 
+                        fontSize: '0.72rem', 
+                        fontWeight: '800', 
+                        background: 'rgba(255, 255, 255, 0.06)', 
+                        color: '#ffffff', 
+                        padding: '0.25rem 0.65rem', 
+                        borderRadius: '6px', 
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        letterSpacing: '0.04em'
+                      }}>
+                        {ex.sets} SETS × {ex.reps} REPS
+                      </span>
+                      <span style={{ 
+                        fontSize: '0.72rem', 
+                        fontWeight: '700', 
+                        background: 'rgba(255, 255, 255, 0.04)', 
+                        color: 'var(--text-secondary)', 
+                        padding: '0.25rem 0.65rem', 
+                        borderRadius: '6px',
+                        border: '1px solid rgba(255, 255, 255, 0.06)'
+                      }}>
+                        REST: {ex.rest}
+                      </span>
+                      <span style={{ 
+                        fontSize: '0.72rem', 
+                        fontWeight: '800', 
+                        background: 'rgba(200, 255, 0, 0.12)', 
+                        color: 'var(--accent-coral)', 
+                        padding: '0.25rem 0.65rem', 
+                        borderRadius: '6px',
+                        border: '1px solid rgba(200, 255, 0, 0.25)'
+                      }}>
+                        RPE {ex.rpe}
+                      </span>
                     </div>
 
                     {/* Edit & Delete Exercise Buttons */}
@@ -1097,9 +1121,11 @@ export default function RoutineBrowser({
 
                       {/* Breathing */}
                       {guide.breathing && (
-                        <div style={{ background: 'rgba(200, 255, 0, 0.05)', borderLeft: '3px solid var(--accent-red)', padding: '0.6rem 0.85rem', borderRadius: '4px' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--accent-red)', textTransform: 'uppercase', display: 'block', marginBottom: '0.15rem', letterSpacing: '0.05em' }}>{t('breathingTip')}</span>
-                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: '1.4' }}>{translateContent(guide.breathing)}</p>
+                        <div style={{ background: 'rgba(200, 255, 0, 0.06)', borderLeft: '3px solid var(--accent-coral)', padding: '0.65rem 0.9rem', borderRadius: '6px' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--accent-coral)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.2rem', letterSpacing: '0.05em' }}>
+                            💡 {t('breathingTip')}
+                          </span>
+                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: '1.4' }}>{translateContent(guide.breathing)}</p>
                         </div>
                       )}
                     </div>
