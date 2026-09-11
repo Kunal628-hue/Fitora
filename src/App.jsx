@@ -270,7 +270,7 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const secureApiKey = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || '';
+  const secureApiKey = '';
 
   // Toast
   const [toast, setToast] = useState('');
@@ -700,7 +700,6 @@ export default function App() {
     const apiKey = secureApiKey;
     let generatedPlan = null;
 
-    if (apiKey) {
       try {
         generatedPlan = await generateAiPlan({
           age: parsedAge,
@@ -726,7 +725,6 @@ export default function App() {
         sanitizeErrorMessage(err, null, 'AI');
         showToast('AI Plan generation failed. Using local fallback.');
       }
-    }
 
     if (!generatedPlan) {
       generatedPlan = generateLocalFallbackPlan({
@@ -813,7 +811,6 @@ export default function App() {
     const apiKey = secureApiKey;
     let newMeal = null;
 
-    if (apiKey) {
       showToast('Swapping meal using AI...');
       try {
         newMeal = await generateSingleMealAi({
@@ -831,7 +828,6 @@ export default function App() {
         sanitizeErrorMessage(err, null, 'AI');
         showToast('AI Swap failed. Using local database swap.');
       }
-    }
 
     const isMealValid = newMeal && 
       typeof newMeal === 'object' && 

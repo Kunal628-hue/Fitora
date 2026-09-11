@@ -88,9 +88,7 @@ export default function ChatBot({ profileContext, apiKey, provider, model, showC
     setLoading(true);
 
     try {
-      if (!apiKey) {
-        throw new Error("Please set VITE_GROQ_API_KEY in your .env configuration file to chat with the AI coach.");
-      }
+
       
       const reply = await askChatBotAi({
         messages: newMessages,

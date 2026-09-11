@@ -220,204 +220,140 @@ You MUST return a JSON object that adheres strictly to this structure:
   ]
 }`;
 
+  let payload;
   if (provider === 'groq') {
-    const response = await fetch(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: model || 'openai/gpt-oss-120b',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          response_format: {
-            type: 'json_object'
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.choices?.[0]?.message?.content;
-    if (!text) {
-      throw new Error("No response from Groq API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    payload = {
+      model: model || 'openai/gpt-oss-120b',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    };
   } else if (provider === 'openrouter') {
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
-          'X-Title': 'Fitora Performance'
-        },
-        body: JSON.stringify({
-          model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          response_format: {
-            type: 'json_object'
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `OpenRouter API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.choices?.[0]?.message?.content;
-    if (!text) {
-      throw new Error("No response from OpenRouter API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    payload = {
+      model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    };
   } else {
-    // Default: Gemini
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: "OBJECT",
-              properties: {
-                dietPlan: {
-                  type: "ARRAY",
-                  items: {
-                    type: "OBJECT",
-                    properties: {
-                      dayIndex: { type: "INTEGER" },
-                      dayName: { type: "STRING" },
-                      meals: {
-                        type: "ARRAY",
-                        items: {
+    payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            dietPlan: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  dayIndex: { type: "INTEGER" },
+                  dayName: { type: "STRING" },
+                  meals: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        slot: { type: "STRING" },
+                        meal: {
                           type: "OBJECT",
                           properties: {
-                            slot: { type: "STRING" },
-                            meal: {
+                            id: { type: "STRING" },
+                            name: { type: "STRING" },
+                            description: { type: "STRING" },
+                            prepTime: { type: "STRING" },
+                            diets: { type: "ARRAY", items: { type: "STRING" } },
+                            baseCalories: { type: "NUMBER" },
+                            macros: {
                               type: "OBJECT",
                               properties: {
-                                id: { type: "STRING" },
-                                name: { type: "STRING" },
-                                description: { type: "STRING" },
-                                prepTime: { type: "STRING" },
-                                diets: { type: "ARRAY", items: { type: "STRING" } },
-                                baseCalories: { type: "NUMBER" },
-                                macros: {
-                                  type: "OBJECT",
-                                  properties: {
-                                    protein: { type: "NUMBER" },
-                                    fat: { type: "NUMBER" },
-                                    carbs: { type: "NUMBER" }
-                                  },
-                                  required: ["protein", "fat", "carbs"]
-                                },
-                                bullets: { type: "ARRAY", items: { type: "STRING" } },
-                                ingredients: {
-                                  type: "ARRAY",
-                                  items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                      name: { type: "STRING" },
-                                      baseAmount: { type: "NUMBER" },
-                                      unit: { type: "STRING" }
-                                    },
-                                    required: ["name", "baseAmount", "unit"]
-                                  }
-                                },
-                                instructions: { type: "ARRAY", items: { type: "STRING" } }
+                                protein: { type: "NUMBER" },
+                                fat: { type: "NUMBER" },
+                                carbs: { type: "NUMBER" }
                               },
-                              required: ["id", "name", "description", "prepTime", "diets", "baseCalories", "macros", "bullets", "ingredients", "instructions"]
+                              required: ["protein", "fat", "carbs"]
                             },
-                            targetCalories: { type: "NUMBER" }
+                            bullets: { type: "ARRAY", items: { type: "STRING" } },
+                            ingredients: {
+                              type: "ARRAY",
+                              items: {
+                                type: "OBJECT",
+                                properties: {
+                                  name: { type: "STRING" },
+                                  baseAmount: { type: "NUMBER" },
+                                  unit: { type: "STRING" }
+                                },
+                                required: ["name", "baseAmount", "unit"]
+                              }
+                            },
+                            instructions: { type: "ARRAY", items: { type: "STRING" } }
                           },
-                          required: ["slot", "meal", "targetCalories"]
-                        }
-                      }
-                    },
-                    required: ["dayIndex", "dayName", "meals"]
+                          required: ["id", "name", "description", "prepTime", "diets", "baseCalories", "macros", "bullets", "ingredients", "instructions"]
+                        },
+                        targetCalories: { type: "NUMBER" }
+                      },
+                      required: ["slot", "meal", "targetCalories"]
+                    }
                   }
                 },
-                workoutPlan: {
-                  type: "ARRAY",
-                  items: {
-                    type: "OBJECT",
-                    properties: {
-                      dayIndex: { type: "INTEGER" },
-                      dayName: { type: "STRING" },
-                      dayNumber: { type: "STRING" },
-                      routineName: { type: "STRING" },
-                      focus: { type: "STRING" },
-                      focusTip: { type: "STRING" },
-                      exercises: {
-                        type: "ARRAY",
-                        items: {
-                          type: "OBJECT",
-                          properties: {
-                            name: { type: "STRING" },
-                            sets: { type: "NUMBER" },
-                            reps: { type: "STRING" },
-                            rest: { type: "STRING" },
-                            rpe: { type: "STRING" }
-                          },
-                          required: ["name", "sets", "reps", "rest", "rpe"]
-                        }
-                      }
-                    },
-                    required: ["dayIndex", "dayName", "dayNumber", "routineName", "focus", "focusTip", "exercises"]
+                required: ["dayIndex", "dayName", "meals"]
+              }
+            },
+            workoutPlan: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  dayIndex: { type: "INTEGER" },
+                  dayName: { type: "STRING" },
+                  dayNumber: { type: "STRING" },
+                  routineName: { type: "STRING" },
+                  focus: { type: "STRING" },
+                  focusTip: { type: "STRING" },
+                  exercises: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        name: { type: "STRING" },
+                        sets: { type: "NUMBER" },
+                        reps: { type: "STRING" },
+                        rest: { type: "STRING" },
+                        rpe: { type: "STRING" }
+                      },
+                      required: ["name", "sets", "reps", "rest", "rpe"]
+                    }
                   }
-                }
-              },
-              required: ["dietPlan", "workoutPlan"]
+                },
+                required: ["dayIndex", "dayName", "dayNumber", "routineName", "focus", "focusTip", "exercises"]
+              }
             }
-          }
-        })
+          },
+          required: ["dietPlan", "workoutPlan"]
+        }
       }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new Error("No response from Gemini API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    };
   }
+
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, payload, apiKey })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  let text = '';
+  if (provider === 'groq' || provider === 'openrouter') {
+    text = result.choices?.[0]?.message?.content;
+  } else {
+    text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  }
+  if (!text) throw new Error("No response from AI API");
+  return JSON.parse(cleanJsonResponse(text));
 }
 
 /**
@@ -450,145 +386,83 @@ You MUST return a JSON object matching this schema:
   "instructions": ["Step 1...", "Step 2..."]
 }`;
 
+  let payload;
   if (provider === 'groq') {
-    const response = await fetch(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: model || 'openai/gpt-oss-120b',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          response_format: {
-            type: 'json_object'
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.choices?.[0]?.message?.content;
-    if (!text) {
-      throw new Error("No response from Groq API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    payload = {
+      model: model || 'openai/gpt-oss-120b',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    };
   } else if (provider === 'openrouter') {
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
-          'X-Title': 'Fitora Performance'
-        },
-        body: JSON.stringify({
-          model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          response_format: {
-            type: 'json_object'
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.choices?.[0]?.message?.content;
-    if (!text) {
-      throw new Error("No response from OpenRouter API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    payload = {
+      model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    };
   } else {
-    // Default: Gemini
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: {
+    payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            id: { type: "STRING" },
+            name: { type: "STRING" },
+            description: { type: "STRING" },
+            prepTime: { type: "STRING" },
+            diets: { type: "ARRAY", items: { type: "STRING" } },
+            baseCalories: { type: "NUMBER" },
+            macros: {
               type: "OBJECT",
               properties: {
-                id: { type: "STRING" },
-                name: { type: "STRING" },
-                description: { type: "STRING" },
-                prepTime: { type: "STRING" },
-                diets: { type: "ARRAY", items: { type: "STRING" } },
-                baseCalories: { type: "NUMBER" },
-                macros: {
-                  type: "OBJECT",
-                  properties: {
-                    protein: { type: "NUMBER" },
-                    fat: { type: "NUMBER" },
-                    carbs: { type: "NUMBER" }
-                  },
-                  required: ["protein", "fat", "carbs"]
-                },
-                bullets: { type: "ARRAY", items: { type: "STRING" } },
-                ingredients: {
-                  type: "ARRAY",
-                  items: {
-                    type: "OBJECT",
-                    properties: {
-                      name: { type: "STRING" },
-                      baseAmount: { type: "NUMBER" },
-                      unit: { type: "STRING" }
-                    },
-                    required: ["name", "baseAmount", "unit"]
-                  }
-                },
-                instructions: { type: "ARRAY", items: { type: "STRING" } }
+                protein: { type: "NUMBER" },
+                fat: { type: "NUMBER" },
+                carbs: { type: "NUMBER" }
               },
-              required: ["id", "name", "description", "prepTime", "diets", "baseCalories", "macros", "bullets", "ingredients", "instructions"]
-            }
-          }
-        })
+              required: ["protein", "fat", "carbs"]
+            },
+            bullets: { type: "ARRAY", items: { type: "STRING" } },
+            ingredients: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  name: { type: "STRING" },
+                  baseAmount: { type: "NUMBER" },
+                  unit: { type: "STRING" }
+                },
+                required: ["name", "baseAmount", "unit"]
+              }
+            },
+            instructions: { type: "ARRAY", items: { type: "STRING" } }
+          },
+          required: ["id", "name", "description", "prepTime", "diets", "baseCalories", "macros", "bullets", "ingredients", "instructions"]
+        }
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new Error("No response from Gemini API");
-    }
-    return JSON.parse(cleanJsonResponse(text));
+    };
   }
+
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, payload, apiKey })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  let text = '';
+  if (provider === 'groq' || provider === 'openrouter') {
+    text = result.choices?.[0]?.message?.content;
+  } else {
+    text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  }
+  if (!text) throw new Error("No response from AI API");
+  return JSON.parse(cleanJsonResponse(text));
 }
 
 /**
@@ -627,85 +501,45 @@ Response Guidelines:
     ...messages
   ];
 
+  let payload;
   if (provider === 'groq') {
-    const response = await fetch(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: model || 'openai/gpt-oss-120b',
-          messages: apiMessages
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.choices?.[0]?.message?.content || "No response from AI.";
+    payload = {
+      model: model || 'openai/gpt-oss-120b',
+      messages: apiMessages
+    };
   } else if (provider === 'openrouter') {
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
-          'X-Title': 'Fitora Performance'
-        },
-        body: JSON.stringify({
-          model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-          messages: apiMessages
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `OpenRouter API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.choices?.[0]?.message?.content || "No response from AI.";
+    payload = {
+      model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+      messages: apiMessages
+    };
   } else {
-    // Default: Gemini
-    // For Gemini, we convert the messages format to Gemini format:
-    // Gemini expects contents: [{ role: 'user'|'model', parts: [{ text: ... }] }]
     const geminiContents = messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }]
     }));
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: geminiContents,
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          }
-        })
+    payload = {
+      contents: geminiContents,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
       }
-    );
+    };
+  }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Gemini API error: ${response.status}`);
-    }
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, payload, apiKey })
+  });
 
-    const result = await response.json();
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  if (provider === 'groq' || provider === 'openrouter') {
+    return result.choices?.[0]?.message?.content || "No response from AI.";
+  } else {
     return result.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
   }
 }
@@ -717,9 +551,7 @@ export async function generateAiRecipe({ query, diet, apiKey, provider = 'gemini
     throw new Error(rateLimit.reason || `Rate limit reached for AI Recipe. Please wait ${rateLimit.retryAfterSeconds}s.`);
   }
 
-  if (!apiKey) {
-    throw new Error("AI API Key is missing. Please configure it in the Profile Settings.");
-  }
+
 
   const systemPrompt = `You are a professional chef, sports nutritionist, and fitness meal prep expert.
 Your task is to generate exactly 7 distinct, high-performance, macro-friendly recipes matching the user's request.
@@ -757,101 +589,62 @@ Ensure the calorie and macro math is accurate (1g protein = 4 kcal, 1g carb = 4 
     { role: 'user', content: `Please generate exactly 7 distinct ${diet === 'veg' ? 'vegetarian' : 'non-vegetarian'} recipes for query: "${query}"` }
   ];
 
+  let payload;
   if (provider === 'groq') {
-    const response = await fetch(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: model || 'openai/gpt-oss-120b',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages
-          ],
-          temperature: 0.3
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content || "";
-    return parseCleanJson(content);
+    payload = {
+      model: model || 'openai/gpt-oss-120b',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ],
+      temperature: 0.3
+    };
   } else if (provider === 'openrouter') {
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://fitora.app',
-          'X-Title': 'Fitora Performance'
-        },
-        body: JSON.stringify({
-          model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages
-          ],
-          temperature: 0.3
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `OpenRouter API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content || "";
-    return parseCleanJson(content);
+    payload = {
+      model: model || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ],
+      temperature: 0.3
+    };
   } else {
-    // Gemini
     const geminiContents = [
       {
         role: 'user',
         parts: [{ text: `Please generate exactly 7 distinct ${diet === 'veg' ? 'vegetarian' : 'non-vegetarian'} recipes for query: "${query}"` }]
       }
     ];
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: geminiContents,
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          generationConfig: {
-            responseMimeType: "application/json"
-          }
-        })
+    payload = {
+      contents: geminiContents,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        responseMimeType: "application/json"
       }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Gemini API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const content = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    return parseCleanJson(content);
+    };
   }
+
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, payload, apiKey })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  let text = '';
+  if (provider === 'groq' || provider === 'openrouter') {
+    text = result.choices?.[0]?.message?.content || "";
+  } else {
+    text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  }
+  return parseCleanJson(text);
 }
 
 function parseCleanJson(text) {

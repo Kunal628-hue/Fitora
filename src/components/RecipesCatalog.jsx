@@ -130,9 +130,7 @@ export default function RecipesCatalog({ onViewDetails, apiKey, provider, model,
     setAiSearchResults(null);
 
     try {
-      if (!apiKey) {
-        throw new Error("AI API Key is missing. Please set VITE_GROQ_API_KEY in your .env configuration file.");
-      }
+
 
       const generatedList = await generateAiRecipe({
         query: searchQuery,
