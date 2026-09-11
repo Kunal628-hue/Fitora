@@ -266,7 +266,7 @@ export default function App() {
   const [selectedMealSlot, setSelectedMealSlot] = useState(null);
   const [selectedCatalogRecipe, setSelectedCatalogRecipe] = useState(null);
   const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('fitora_ai_provider') || 'groq'); // 'gemini' | 'openrouter' | 'groq'
-  const [openRouterModel, setOpenRouterModel] = useState(() => localStorage.getItem('fitora_openrouter_model') || 'llama-3.3-70b-versatile');
+  const [openRouterModel, setOpenRouterModel] = useState(() => localStorage.getItem('fitora_openrouter_model') || 'openai/gpt-oss-120b');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 

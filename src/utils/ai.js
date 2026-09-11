@@ -230,7 +230,7 @@ You MUST return a JSON object that adheres strictly to this structure:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: model || 'llama-3.3-70b-versatile',
+          model: model || 'openai/gpt-oss-120b',
           messages: [
             {
               role: 'user',
@@ -460,7 +460,7 @@ You MUST return a JSON object matching this schema:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: model || 'llama-3.3-70b-versatile',
+          model: model || 'openai/gpt-oss-120b',
           messages: [
             {
               role: 'user',
@@ -637,7 +637,7 @@ Response Guidelines:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: model || 'llama-3.3-70b-versatile',
+          model: model || 'openai/gpt-oss-120b',
           messages: apiMessages
         })
       }
@@ -767,7 +767,7 @@ Ensure the calorie and macro math is accurate (1g protein = 4 kcal, 1g carb = 4 
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: model || 'llama-3.3-70b-versatile',
+          model: model || 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             ...messages
